@@ -1,0 +1,40 @@
+# Pull base image
+FROM python:3.7-alpine
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+RUN apk update && \
+   apk add build-base \
+   postgresql-dev \
+   bash \
+   # Tessaract
+   tesseract-ocr \
+   tesseract-ocr-dev \
+   # Poppler
+   cmake \
+   poppler-utils \
+   poppler-dev \
+   # Pillow Dependencies
+   freetype-dev \
+   fribidi-dev \
+   harfbuzz-dev \
+   jpeg-dev \
+   lcms2-dev \
+   libimagequant-dev \
+   openjpeg-dev \
+   tcl-dev \
+   tiff-dev \
+   tk-dev \
+   zlib-dev
+   # Spacy
+   
+
+RUN mkdir /app
+COPY ./app /app
+WORKDIR /app
+
+RUN pip install --upgrade pip
+COPY ./requirements.txt /app/requirements.txt
+RUN pip install -r requirements.txt

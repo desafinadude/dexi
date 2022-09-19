@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,400;0,600;1,300&display=swap');
+
+
+html {
+    font-size: 0.8rem;
+}
+
+body {
+    font-family: 'Work Sans', sans-serif;
+    background: #eceff0;
+    padding-bottom: 2em;
+}
+
+
+@layer components {
+    .btn-primary {
+        @apply py-2 px-4 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75;
+    }
+}

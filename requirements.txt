@@ -1,0 +1,16 @@
+Django>=2.2
+#django-jazzmin
+# django-jet-reboot
+djangorestframework>=3.12.1
+django-cors-headers>=3.0.0
+django-storages
+boto3
+celery==4.4.1
+redis==3.4.1
+psycopg2==2.7.5
+python-poppler
+PyPDF2
+pdf2image
+pytesseract
+Image
+pillow
