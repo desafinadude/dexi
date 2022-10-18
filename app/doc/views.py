@@ -10,6 +10,7 @@ from django.shortcuts import redirect
 from .models import Doc
 from .serializers import DocSerializer
 from django.core import serializers
+from django.utils import timezone
 
 
 from .tasks_ocr import doc_ocr
@@ -21,10 +22,11 @@ class DocListApiView(APIView):
     # permission_classes = [permissions.IsAuthenticated]
     # authentication_classes = [authentication.TokenAuthentication]
 
-    
     def get(self, request, *args, **kwargs):
-       
-        docs = Doc.objects.filter(user_id = request.user.id)
+        if(kwargs.get('folder_id')):
+            docs = Doc.objects.filter(folder_id=kwargs.get('folder_id'), user_id=request.user.id, deleted_at__isnull=True).order_by('id')
+        else:
+            docs = Doc.objects.filter(user_id = request.user.id, deleted_at__isnull=True).order_by('id')
         serializer = DocSerializer(docs, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -65,7 +67,7 @@ class DocListApiView(APIView):
             for doc in docs:
                 ocr = doc_ocr(doc['id'])
 
-            return Response('Conversion Done - Maybe', status=status.HTTP_200_OK)
+            return Response('Sent to worker for conversion', status=status.HTTP_200_OK)
 
         
         elif request.data.get('action') == 'extract':
@@ -76,11 +78,39 @@ class DocListApiView(APIView):
             selected_docs = request.data.getlist('docs')
             docs = Doc.objects.filter(id__in=selected_docs[0].split(','))
             docs = docs.values(*field_name_list)
-            
+
             for doc in docs:
                 extract = doc_extract(doc['id'])
-
+    
             return Response('Extraction Done - Maybe', status=status.HTTP_200_OK)
+
+        elif request.data.get('action') == 'move':
+                
+                # Move
+                field_name_list = ['id','name','file','type','folder','status','user']
+    
+                selected_docs = request.data.getlist('docs')
+                docs = Doc.objects.filter(id__in=selected_docs[0].split(','))
+                docs = docs.values(*field_name_list)
+    
+                for doc in docs:
+                    Doc.objects.filter(id=doc['id']).update(folder=request.data.get('folder'))
+    
+                return Response('Moved', status=status.HTTP_200_OK)
+
+        elif request.data.get('action') == 'delete':
+                
+                # Delete
+                field_name_list = ['id','name','file','type','folder','status','user']
+    
+                selected_docs = request.data.getlist('docs')
+                docs = Doc.objects.filter(id__in=selected_docs[0].split(','))
+                docs = docs.values(*field_name_list)
+    
+                for doc in docs:
+                    Doc.objects.filter(id=doc['id']).update(deleted_at=timezone.now())
+    
+                return Response('Deleted', status=status.HTTP_200_OK)
 
         else:
             # No Action

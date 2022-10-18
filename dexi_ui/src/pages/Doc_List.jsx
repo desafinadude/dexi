@@ -6,6 +6,26 @@ import dayjs from 'dayjs';
 import DataTable, { defaultThemes } from 'react-data-table-component';
 import { Upload } from '../components/Upload';
 import { Folder } from '../components/Folder';
+import { MoveDoc } from '../components/MoveDoc';
+import { UploadReference } from '../components/UploadReference';
+import { DexiAlert } from '../components/DexiAlert';
+
+import Form from 'react-bootstrap/Form';
+import Container from 'react-bootstrap/Container';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
+import Button from 'react-bootstrap/Button';
+import Dropdown from 'react-bootstrap/Dropdown';
+import DropdownButton from 'react-bootstrap/DropdownButton';
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
+import Tooltip from 'react-bootstrap/Tooltip';
+import Modal from 'react-bootstrap/Modal';
+import Spinner from 'react-bootstrap/Spinner';
+import Badge from 'react-bootstrap/Badge';
+import Alert from 'react-bootstrap/Alert';
+
+import Icon from '@mdi/react';
+import { mdiFileUpload, mdiShuffleVariant, mdiDiversify, mdiFolder, mdiRefresh, mdiSelectGroup } from '@mdi/js';
 
 
 
@@ -16,26 +36,33 @@ export class DocList extends React.Component {
         super();
         this.state = {
             tokenSet: false,
+            status: [
+                { id: 1, name: 'UPLOADED', color: 'primary' },
+                { id: 2, name: 'CONVERTING', color: 'warning' },
+                { id: 3, name: 'CONVERTED', color: 'success' },
+                { id: 4, name: 'EXTRACTING', color: 'warning' },
+                { id: 5, name: 'EXTRACTED', color: 'success' }
+            ],
             columns: [
                 {
                     name: 'ID',
                     selector: row => row.id,
-                    maxWidth: '20px'
+                    maxWidth: '10px'
                 },
                 {
                     name: 'Name',
                     selector: row => row.name,
-                    cell: row => <span><a href={`/doc/${row.id}`}>{row.name}</a></span>
+                    cell: row => <a className="text-decoration-none" href={`doc/${row.id}`}>{row.name}</a>
                 },
                 {
-                    name: 'File',
-                    selector: row => row.file,
-                    cell: row => <span><a target="blank" href={row.file}>{row.file != null ? row.file.replace('https://dexi-storage.s3.amazonaws.com/','') : row.file}</a></span>
+                    name: 'Type',
+                    selector: row => row.type.replace('application/', '').toUpperCase(),
+                    maxWidth: '50px'
                 },
                 {
                     name: 'Folder',
-                    selector: row => this.state.folders.find(folder => folder.id == row.folder).name,
-                    maxWidth: '50px'
+                    selector: row => <Badge bg="info">{this.state.folders.find(folder => folder.id == row.folder).name}</Badge>,
+                    maxWidth: '60px'
                 },
                 {
                     name: 'Created',
@@ -46,17 +73,54 @@ export class DocList extends React.Component {
                 {
                     name: 'Status',
                     selector: row => row.status,
-                    cell: row => <span>{row.status}</span>,
-                    maxWidth: '150px'
+                    cell: row => <span className={'badge bg-' + this.state.status.find(status => status.id == row.status).color}>{this.state.status.find(status => status.id == row.status).name}</span>,
+                    cell: row => {
+                        return (
+                            <>
+                                {/* UPLOADED */}
+                                <OverlayTrigger placement="top" overlay={<Tooltip>Uploaded</Tooltip>}>
+                                    <div className="me-1">
+                                        <Button size="sm" variant={row.status >= 1 ? 'primary' : 'outline-info'} disabled={row.status > 1}><Icon path={mdiFileUpload} size={0.7} color={row.status >= 1 ? '#fff' : '#666'}/></Button>
+                                    </div>
+                                </OverlayTrigger>
+
+                                {/* CONVERTED */}
+                                <OverlayTrigger placement="top" overlay={<Tooltip>{row.status == 2 ? 'Converting' : 'Converted'}</Tooltip>}>
+                                    <div className="me-1">
+                                        <Button size="sm" variant={row.status == 2 ? 'secondary' : row.status >= 3 ? 'primary' : 'outline-info'} className={ row.status == 2 && 'animate__animated animate__infinite animate__pulse'} disabled={row.status >= 3} onClick={() => row.status == 2 ? console.log('2') : console.log('1')}><Icon path={mdiShuffleVariant} size={0.7} color={row.status >= 2 ? '#fff' : '#666'}/></Button>
+                                    </div>
+                                </OverlayTrigger>
+
+                                {/* EXTRACTED */}
+                                <OverlayTrigger placement="top" overlay={<Tooltip>{row.status == 4 ? 'Extracting' : 'Extracted'}</Tooltip>}>
+                                    <div>
+                                        <Button size="sm" variant={row.status == 4 ? 'secondary' : row.status == 5 ? 'primary' :  'outline-info'} className={ row.status == 4 && 'animate__animated animate__infinite animate__pulse'} disabled={row.status >= 4}><Icon path={mdiDiversify} size={0.7} color={row.status >= 4 ? '#fff' : '#666'}/></Button>
+                                    </div>
+                                </OverlayTrigger>
+                        
+                            </>
+                        )
+                    },
+                    maxWidth: '180px'
                 },
 
             ],
             docs: [],
             folders: [],
+            selectedFolder: undefined,
             selectedRows: [],
+            showModal: false,
             showUpload: false,
-            showFolder: false
+            showFolder: false,
+            showMoveDoc: false,
+            showReferenceUpload: false,
+            alert: {
+                show: false,
+                variant: 'success',
+                message: ''
+            }
         }
+        this.docActionRef = React.createRef();
         
     }
 
@@ -80,10 +144,28 @@ export class DocList extends React.Component {
                 console.log(error);
             })
 
-        // Get Docs List
-        axios.get(process.env.API + '/doc/api', { headers: {
-            "Authorization": "token " + getCookie('dexitoken')
-            }})
+        self.getDocs();    
+
+        // GetDocs every 5 seconds
+        setInterval(() => {
+            self.getDocs();
+        }, 5000);
+
+
+        
+    }
+
+    getDocs = () => {
+        console.log('Getting Docs');
+
+        let self = this;
+
+        let url = self.state.selectedFolder ? process.env.API + '/doc/api/folder/' + self.state.selectedFolder : process.env.API + '/doc/api';
+
+        axios.get(url, 
+            { 
+            headers: { "Authorization": "token " + getCookie('dexitoken')}
+            })
             .then((response) => {
                 self.setState({ docs: response.data })
             })
@@ -100,91 +182,190 @@ export class DocList extends React.Component {
     docAction = (e) => {
         let self = this;
         if (self.state.selectedRows.length > 0) {
-            
-            // TODO: Delete and Move
-            if(e.target.value == 'delete' || e.target.value == 'move') {
-                alert('TODO: Delete and Move')
-            } else {
+
+            if(e.target.value == 'convert') {
 
                 // CONVERT
-                if(e.target.value == 'convert') {
 
-                    var newFormData = new FormData();
+                console.log('Sending for conversion');
+                self.setState({alert: {show: true, variant: 'success', message: 'Sending for conversion'}});
 
-                    newFormData.append("docs", self.state.selectedRows.map(doc => doc.id).join(','));
-                    newFormData.append("action", "convert");
 
-                    // console.log(...newFormData);
+                var newFormData = new FormData();
+
+                newFormData.append("docs", self.state.selectedRows.map(doc => doc.id).join(','));
+                newFormData.append("action", "convert");
+            
+                axios.post(process.env.API + '/doc/api/', newFormData, { headers: {
+                    "Authorization": "token " + getCookie('dexitoken')
+                    }})
+                    .then((response) => {
+                        console.log(response)
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                    })
                 
-                    axios.post(process.env.API + '/doc/api', newFormData, { headers: {
-                        "Authorization": "token " + getCookie('dexitoken')
-                        }})
-                        .then((response) => {
-                            console.log(response)
-                        })
-                        .catch((error) => {
-                            console.log(error);
-                        })
-                }
-
+            }
+            if(e.target.value == 'extract') {
+                
                 // EXTRACT
-                else if(e.target.value == 'extract') {
 
-                    console.log('Extracting Entities');
-
-                    var newFormData = new FormData();
-
-                    newFormData.append("docs", self.state.selectedRows.map(doc => doc.id).join(','));
-                    newFormData.append("action", "extract");
-
-                    // console.log(...newFormData);
-                
-                    axios.post(process.env.API + '/doc/api', newFormData, { headers: {
-                        "Authorization": "token " + getCookie('dexitoken')
-                        }})
-                        .then((response) => {
-                            console.log(response)
-                        })
-                        .catch((error) => {
-                            console.log(error);
-                        })
+                let alert = {
+                    show: true,
+                    variant: 'success',
+                    message: 'Extracting Entities'
                 }
+
+                self.setState({alert: alert});
+
+                var newFormData = new FormData();
+
+                newFormData.append("docs", self.state.selectedRows.map(doc => doc.id).join(','));
+                newFormData.append("action", "extract");
+            
+                axios.post(process.env.API + '/doc/api/', newFormData, { headers: {
+                    "Authorization": "token " + getCookie('dexitoken')
+                    }})
+                    .then((response) => {
+                        console.log(response)
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                    })
+            }
+
+            if(e.target.value == 'move') {
+
+                // MOVE
+
+                self.showModal('move');
+            }
+
+            if(e.target.value == 'delete') {
+
+                self.setState({alert: {show: true, variant: 'success', message: 'Deleting'}});
+                
+                // DELETE
+
+                var newFormData = new FormData();
+
+                newFormData.append("docs", self.state.selectedRows.map(doc => doc.id).join(','));
+                newFormData.append("action", "delete");
+
+                axios.post(process.env.API + '/doc/api/', newFormData, { headers: {
+                    "Authorization": "token " + getCookie('dexitoken')
+                    }})
+                    .then((response) => {
+                        self.setState({selectedRows: []});
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                    })
 
             }
+            
 
         } else {
             alert('No documents Selected');
         }
+
+        this.docActionRef.current.value = '';
+
+    }
+
+    onNameChange = (e) => {
+        console.log(e);
+    }
+
+    selectFolder = (e) => {
+        let self = this;
+        e.target.value == 'all' ? self.setState({selectedFolder: undefined}) : self.setState({selectedFolder: e.target.value});
+        self.getDocs();
+    }
+    
+    showModal(form) {
+        this.setState(
+            {   
+                showModal: true, 
+                showUpload: form == 'upload' ? true : false, 
+                showFolder: form == 'folder' ? true : false,
+                showMoveDoc: form == 'move' ? true : false,
+                showReferenceUpload: form == 'reference' ? true : false
+            }
+        );
     }
 
     render() {
-        return (<>
-            <select onChange={this.docAction}>
-                <option>Choose an Action</option>
-                <option value="convert">Convert</option>
-                <option value="extract">Extract</option>
-                <option value="move">Move</option>
-                <option value="delete">Delete</option>
-            </select>
-            <DataTable
-                className="mt-5"
-                columns={this.state.columns}
-                data={this.state.docs}
-                dense={false}
-                striped={true}
-                fixedHeader={true}
-                highlightOnHover={false}
-                selectableRows
-                onSelectedRowsChange={this.selectRows}
-            />
-            <button className="mt-5 p-3" onClick={() => this.setState({showUpload: true})}>New Doc</button>&nbsp;
-            <button className="mt-5 p-3" onClick={() => this.setState({showFolder: true})}>New Folder</button>
-            
+        return (<section className="vh-100 pt-5">
 
-            {   this.state.showUpload ? <Upload folders={this.state.folders}/> : null   }
-            {   this.state.showFolder ? <Folder /> : null   }
+            <Container fluid>
+                <DexiAlert alert={this.state.alert} />
+            </Container>
 
-        </>)
+            <Container>
+
+                <Row className="mb-2">
+                    <Col>
+                        <DropdownButton variant="primary" title="NEW" size="sm">
+                            <Dropdown.Item onClick={() => this.showModal('upload')}>Document</Dropdown.Item>
+                            <Dropdown.Item onClick={() => this.showModal('folder')}>Folder</Dropdown.Item>
+                            <Dropdown.Item onClick={() => this.showModal('reference')}>Reference</Dropdown.Item>
+                        </DropdownButton>
+                    </Col>
+                    <Col md="auto">
+                        <Form.Select size="sm" onChange={(e) => this.selectFolder(e)} className="animate__animated animate__fadeIn">
+                            <option value="">All Folders</option>
+                            {this.state.folders.map((folder) => (
+                                <option key={folder.id} value={folder.id}>{folder.name}</option>
+                            ))}
+                        </Form.Select>
+                    </Col>
+                    <Col md="auto" >
+                        <Form.Select size="sm" onChange={this.docAction} ref={this.docActionRef} className="animate__animated animate__fadeIn">
+                            <option value="">Do something</option>
+                            <option value="convert">Convert To Text</option>
+                            <option value="extract">Extract Entities</option>
+                            <option value="move">Move To Folder</option>
+                            <option value="delete">Delete File</option>
+                        </Form.Select>
+                    </Col>
+                    <Col md="auto">
+                        <Button size="sm" variant="info" onClick={() => this.getDocs()}><Icon path={mdiRefresh} size={0.7} color="#fff"/></Button>
+                    </Col>
+                </Row>
+
+                <div className="animate__animated animate__fadeIn">    
+                    <DataTable
+                        columns={this.state.columns}
+                        data={this.state.docs}
+                        dense={false}
+                        striped={true}
+                        fixedHeader={true}
+                        highlightOnHover={false}
+                        selectableRows
+                        onSelectedRowsChange={this.selectRows}
+                    />
+                </div>
+               
+               <Modal centered show={this.state.showModal} onHide={() => this.setState({showModal: false})}>
+                    <Modal.Header closeButton>
+                        <Modal.Title>{this.state.showUpload ? 'Upload Documents' : this.state.showFolder ? 'Create Folder' : this.state.showMoveDoc ? 'Move Document' : 'Upload Reference'}</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        { this.state.showUpload && <Upload folders={this.state.folders} onHide={() => this.setState({showModal: false})} /> }
+                        { this.state.showFolder && <Folder onHide={() => this.setState({showModal: false})} /> }
+                        { this.state.showMoveDoc && <MoveDoc folders={this.state.folders} docs={this.state.selectedRows} onHide={() => this.setState({showModal: false})} /> }
+                        { this.state.showReferenceUpload && <UploadReference /> }
+                    </Modal.Body>
+                    
+                </Modal>
+
+                
+
+            </Container>
+
+        </section>)
 
     }
 

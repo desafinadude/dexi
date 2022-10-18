@@ -1,5 +1,11 @@
 import React from 'react';
 import axios from 'axios';
+import Form from 'react-bootstrap/Form';
+import Container from 'react-bootstrap/Container';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
+import Button from 'react-bootstrap/Button';
+import Card from 'react-bootstrap/Card';
 
 export class Login extends React.Component {
 
@@ -38,17 +44,25 @@ export class Login extends React.Component {
     }
 
     render() {
-        return (<>
-        
-        <h2 className="text-center mb-5">Login</h2>
-        
-        <form onSubmit={this.onFormSubmit}>
-            <input name="username" type="text" size="lg" placeholder="Username" />
-            <input name="password" type="password" size="lg" placeholder="Password" />
-            <button variant="primary" size="lg" type="submit">Login</button>
-        </form>
-
-        </>)
+        return (
+        <section className="bg-white vh-100">
+            <Container className="py-5">
+                <Row className="justify-content-center">
+                    <Col md="4">
+                        <Card className="shadow">
+                            <Card.Body>
+                                <h4 className="text-center mb-5">Login</h4>
+                                <form onSubmit={this.onFormSubmit}>
+                                    <Form.Control size="sm" type="text" placeholder="Username" name="username" className="mb-2"/>
+                                    <Form.Control size="sm" type="password" placeholder="Password" name="password"/>
+                                    <Button size="sm" type="submit" className="mt-3 more-rounded text-white" variant="secondary">Login</Button>
+                                </form>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                </Row>
+            </Container>
+        </section>)
     }
 
 }

@@ -4,12 +4,10 @@ import uuid
 from django.contrib.auth.models import User
 from folder.models import Folder
 
-the_uuid = uuid.uuid4()
-
 # The filename needs to be unique here. Use UUID
 def get_file_path(instance, filename):
     ext = filename.split('.')[-1]
-    filename = f'{the_uuid}.{ext}'
+    filename = f'{uuid.uuid4()}.{ext}'
     return filename
 
 class Status(models.Model):
@@ -20,7 +18,7 @@ class Status(models.Model):
 
 
 class Doc(models.Model):
-    uuid = models.UUIDField(default = the_uuid, editable=False)
+    uuid = models.UUIDField(default = uuid.uuid4(), editable=False)
     name = models.CharField(max_length = 180, null = True)
     file = models.FileField(null = True, upload_to=get_file_path)
     folder = models.ForeignKey(Folder, on_delete=models.CASCADE)

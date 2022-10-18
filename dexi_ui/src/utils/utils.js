@@ -22,7 +22,5 @@ export const setCookie = (name, value, exdays) => {
 export const isTokenSet = () => {
     if(document.cookie.includes("dexitoken=")) {
         return true;
-    } else {
-        window.location.href = "/login";
     }
 }

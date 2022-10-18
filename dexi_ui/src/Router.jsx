@@ -8,6 +8,7 @@ import { Login } from './pages/Login';
 import { DocList } from './pages/Doc_List';
 import { DocEdit } from './pages/Doc_Edit';
 import { DocView } from './pages/Doc_View';
+import { EntityList } from './pages/Entity_List';
 
 
 export class Router extends Component {
@@ -29,6 +30,8 @@ export class Router extends Component {
             <Route path="/doc" element={<DocList />} />
             <Route path="/doc/create" element={<DocEdit mode="create" />} />
             <Route path="/doc/:docId" element={<DocView />} />
+
+            <Route path="/entity" element={<EntityList />} />
 
         </Routes>
       )

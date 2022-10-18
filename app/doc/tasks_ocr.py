@@ -26,6 +26,9 @@ import boto3
 from io import BytesIO
 from django.conf import settings
 
+import glob
+from natsort import natsorted
+
 from doc.models import Doc
 from doc.serializers import DocSerializer
 
@@ -34,17 +37,25 @@ s3 = boto3.client('s3', aws_access_key_id=settings.AWS_ACCESS_KEY_ID , aws_secre
 @shared_task
 def doc_ocr(doc_id):
 
+    print('Worker conversion task here...ready')
+
     doc = Doc.objects.get(pk=doc_id)
 
-    if doc.status == 2:
+    if doc.status.id == 1:
+
+        # TODO: Why not write these to a file's log? That could be a useful feature.
+
+        print('yes it\'s ready to be converted')
 
         if doc.type == 'application/pdf':
+
+            print('yes it\'s a pdf')
 
             # time.sleep(randint(1, 30))
         
             # Setting document status to "CONVERTING"
             data = {
-                'status': 1
+                'status': 2
             }
             serializer = DocSerializer(instance=doc, data=data, partial = True)
             if serializer.is_valid():
@@ -52,35 +63,51 @@ def doc_ocr(doc_id):
                 
             # Converting PDF to TXT
             s3.download_file(settings.AWS_STORAGE_BUCKET_NAME, str(doc.file), '/tmp/' + str(doc.file))
-
+            
             pdf = PdfFileReader('/tmp/' + str(doc.file))
+
+            # Make a working forlder for this PDF
+            if not os.path.exists('/tmp/' + str(doc.file) + '_work'):
+                os.mkdir('/tmp/' + str(doc.file) + '_work')
+    
+            source = '/tmp/' 
+            destination = '/tmp/' + str(doc.file) + '_work/'
+
             for page in range(pdf.getNumPages()):
                 pdf_writer = PdfFileWriter()
                 pdf_writer.addPage(pdf.getPage(page))
 
-                output_filename = '{}_page_{}.pdf'.format(str(doc.file), page + 1)
+                output_filename = '{}_dexipage_{}.pdf'.format(str(doc.file), page + 1)
 
-                with open('/tmp/' + output_filename, 'wb') as out:
+                with open(destination + output_filename, 'wb') as out:
                     pdf_writer.write(out)
 
                 print('Created: {}'.format(output_filename))
             
-            source = '/tmp/'
-            destination = '/tmp/'
-            
-            converted = convert(source + str(doc.file), os.path.join(destination, str(doc.file) + '.txt'))
-            
-            # TODO: Cleanup temp files here and upload text file to bucket
+            # For every pdf file in folder, convert to txt
+            for filename in glob.glob(destination + '*dexipage*.pdf'):
+                converted = convert(filename, filename + '.txt')
 
-            if(converted):
+            with open(destination + str(doc.file) + '.txt', 'w') as outfile:
+                for txtfile in natsorted(glob.glob(destination + '*dexipage*.txt')):
+                    with open(txtfile, 'r', encoding='utf-8', errors='ignore') as infile:
+                        outfile.write(txtfile + '\n\n\n' + infile.read() + '\n\n\n')
+            
+            for filename in glob.glob(destination + '*dexipage*'):
+                os.remove(filename)
 
-                # Setting document status to "CONVERTED"
-                data = {
-                    'status': 3
-                }
-                serializer = DocSerializer(instance=doc, data=data, partial = True)
-                if serializer.is_valid():
-                    serializer.save()
+            # Upload converted file to S3
+            s3.upload_file(destination + str(doc.file) + '.txt', settings.AWS_STORAGE_BUCKET_NAME, str(doc.file) + '.txt')
+            response = s3.put_object_acl(ACL='public-read', Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key="%s" % (str(doc.file) + '.txt'))
+
+
+            # Setting document status to "CONVERTED"
+            data = {
+                'status': 3
+            }
+            serializer = DocSerializer(instance=doc, data=data, partial = True)
+            if serializer.is_valid():
+                serializer.save()
 
 
 def convert(sourcefile, destination_file):
@@ -124,17 +151,3 @@ def run(args):
         raise Exception(stderr)
 
     return stdout, stderr
-
-def concatter(files):
-
-    # import glob
-    # import os
-    # from natsort import natsorted
-
-
-    for filename in files:
-        with open('./' + filename + '.txt', 'w') as outfile:
-            for txtfile in natsorted(glob.glob('./work/TRANSCRIPTS/' + filename + '*.txt')):
-                with open(txtfile, 'r', encoding='utf-8', errors='ignore') as infile:
-                    print(txtfile)
-                    outfile.write(txtfile + '\n\n\n' + infile.read() + '\n\n\n')

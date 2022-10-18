@@ -14,3 +14,6 @@ pdf2image
 pytesseract
 Image
 pillow
+spacy
+numpy
+natsort

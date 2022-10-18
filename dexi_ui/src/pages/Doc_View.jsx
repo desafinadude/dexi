@@ -3,8 +3,21 @@ import axios from 'axios';
 import { isTokenSet, getCookie } from '../utils/utils';
 import { useParams } from 'react-router-dom';
 
+import * as fs from 'fs';
+
+import Container from 'react-bootstrap/Container';
+import Tab from 'react-bootstrap/Tab';
+import Tabs from 'react-bootstrap/Tabs';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
+
+import DataTable, { defaultThemes } from 'react-data-table-component';
+
+import parse from "html-react-parser";
+
 
 import { Document, Page } from 'react-pdf/dist/esm/entry.parcel2';
+import { mdiSelectGroup, mdiSkullCrossbonesOutline } from '@mdi/js';
 
 function withParams(Component) {
     return props => <Component {...props} params={useParams()} />;
@@ -18,19 +31,40 @@ export class DocView extends React.Component {
         super()
         this.state = {
             tokenSet: false,
-            doc: {}
+            doc: {},
+            tab: 'pdf',
+            text: '',
+            columns: [
+                {
+                    name: 'entity',
+                    selector: row => row.entity,
+                },
+                {
+                    name: 'pages',
+                    selector: row => row.page,
+                },
+                {
+                    name: 'pos',
+                    selector: row => row.pos,
+                },
+                {
+                    name: 'Schema',
+                    selector: row => row.schema,
+                    maxWidth: '50px'
+                },
+            ],
+            entities: [],
+            pdf_pageNumber: 1,
+            pdf_numPages: null,
         }
         
     }
 
     componentDidMount() {
 
-        // let { docId } = this.props.params;
-        let docId = 1;
-        console.log(this)
+        let docId = window.location.href.split('/').pop();
 
         let self = this;
-
 
         if(isTokenSet()) {
             this.setState({tokenSet: true});
@@ -40,36 +74,126 @@ export class DocView extends React.Component {
             "Authorization": "token " + getCookie('dexitoken')
             }})
             .then((response) => {
-                console.log(response);
-                self.setState({doc: response.data})
+                self.setState({doc: response.data}, () => {
+                    self.getEntities();
+                })
             })
             .catch((error) => {
                 console.log(error);
             })
     }
 
-    // getSnapshotBeforeUpdate(prevProps, prevState) {
-    //     if(this.props.a != prevProps.a || this.props.b.length != prevProps.b.length) {
-    //         return true;
-    //      } else {
-    //         return null;
-    //      }
-    // }
-    // componentDidUpdate(prevProps, prevState, snapshot) {
-    //     if (snapshot == true) {
-            
-    //     }
-    // }
+    onDocumentLoadSuccess = ({ numPages }) => {
+        let self = this;
+        self.setState({ pdf_numPages: numPages });
+    }
+
+    previousPage = () => {
+        let self = this;
+        self.setState({pdf_pageNumber: self.state.pdf_pageNumber - 1});
+    }
+
+    nextPage = () => {
+        let self = this;
+        self.setState({pdf_pageNumber: self.state.pdf_pageNumber + 1});
+    }
+
+
+    getDocText() {
+        let self = this;
+        const file = self.state.doc.file + '.txt';
+        
+        axios.get(file)
+            .then((response) => {
+                let textParser = new DOMParser();
+                let regex = /\/tmp\/[A-Za-z0-9\-._]+\/[A-Za-z0-9\-.]+_dexipage_[A-Za-z0-9\-.]+/g;
+
+                let text = response.data;
+                // let convertedText = text.replaceAll(regex,"-------");
+
+                let convertedText = textParser.parseFromString(text.replaceAll(regex,"-------")
+                    .replaceAll('\n','<br/>'),'text/html')
+                    .body.innerHTML;
+
+                let entities = self.state.entities;
+
+                entities.forEach((entity) => {
+
+                    let regex = new RegExp(`(?<!>)(${entity.entity})(?!<)`, 'g');
+
+                    convertedText = convertedText.replaceAll(regex, '<span class="highlight highlight-' + entity.schema + '">' + entity.entity + '</span>');
+                })
+                self.setState({text: convertedText});
+
+
+            })
+            .catch((error) => {
+                console.log(error);
+            })
+        
+    }
+
+    getEntities() {
+
+        let self = this;
+
+        axios.get(process.env.API + '/entity/api/doc/' + this.state.doc.id, { headers: {
+            "Authorization": "token " + getCookie('dexitoken')
+            }})
+            .then((response) => {
+                self.setState({entities: response.data});
+                self.getDocText();
+            })
+            .catch((error) => {
+                console.log(error);
+            })
+
+    }
+
+    
 
     render() {
         
-
+    
 
         return (
             <>
-                <Document file={this.state.doc.file}>
-                    <Page pageNumber={1}/>
-                </Document>
+                <Container className="my-4">
+
+                    <h2>{this.state.doc.name}</h2>
+
+                    <Tabs activeKey={this.state.tab} onSelect={(k) => this.setState({tab: k})} className="mt-3">
+                        
+                        <Tab eventKey="pdf" title="Document" className="bg-white">
+                            <Document file={this.state.doc.file} onLoadSuccess={this.onDocumentLoadSuccess}>
+                                <Page pageNumber={this.state.pdf_pageNumber} width={800}/>
+                            </Document>
+                            <div>
+                                <p>Page {this.state.pdf_pageNumber || (this.state.pdf_numPages ? 1 : '--')} of {this.state.pdf_numPages || '--'}</p>
+                                <button type="button" disabled={this.state.pdf_pageNumber <= 1} onClick={this.previousPage}>Previous</button>
+                                <button type="button" disabled={this.state.pdf_pageNumber >= this.state.pdf_numPages} onClick={this.nextPage}>Next</button>
+                            </div>
+                        </Tab>
+
+                        <Tab eventKey="text" title="Text" className="bg-white p-5">
+                            <Row>
+                                <Col md={8}>
+                                    {parse(this.state.text)}
+                                </Col>
+                                <Col>
+                                <DataTable
+                                    columns={this.state.columns}
+                                    data={this.state.entities}
+                                    dense={true}
+                                    striped={true}
+                                />
+                                </Col>
+                            </Row>
+                        </Tab>
+                    
+                    </Tabs>
+                    
+                </Container>
                
             </>
         )

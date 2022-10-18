@@ -28,8 +28,6 @@ RUN apk update && \
    tiff-dev \
    tk-dev \
    zlib-dev
-   # Spacy
-   
 
 RUN mkdir /app
 COPY ./app /app
@@ -38,3 +36,5 @@ WORKDIR /app
 RUN pip install --upgrade pip
 COPY ./requirements.txt /app/requirements.txt
 RUN pip install -r requirements.txt
+
+RUN python -m spacy download en_core_web_lg

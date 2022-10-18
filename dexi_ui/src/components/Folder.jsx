@@ -4,10 +4,16 @@ import axios from 'axios';
 import { isTokenSet, getCookie } from '../utils/utils';
 
 
+import Form from 'react-bootstrap/Form';
+import Button from 'react-bootstrap/Button';
+
+
 export class Folder extends React.Component {
 
     
     onFormSubmit = (e) => {
+
+        
 
         e.preventDefault();
         
@@ -32,17 +38,17 @@ export class Folder extends React.Component {
     }
 
     render() {
-        return (<>
+        return (
         
-        <form onSubmit={this.onFormSubmit}>
+        <Form onSubmit={this.onFormSubmit}>
             
-            <input name="name" type="text" size="lg" placeholder="Folder Name" />
+            <Form.Control name="name" type="text" size="sm" placeholder="Folder Name" />
         
-            <button variant="primary" size="lg" type="submit">Submit</button>
+            <Button className="mt-4" variant="primary" size="sm" type="submit">Submit</Button>
                 
-        </form>
+        </Form>
 
-        </>)
+        )
     }
 
 }

@@ -1,23 +1,145 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+$gray-base: #666 !default;
+$gray-darker: lighten($gray-base, 13.5%) !default; // #222
+$gray-dark: #67655D; // #333
+$gray: #B74934; // #555
+$gray-light: #AA9A66; // #777
+$gray-lighter: #A8A8A1; // #eee
 
-@import url('https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,400;0,600;1,300&display=swap');
+$primary: #0eacb6; // #337ab7
+$secondary: #f166a9; // #337ab7
+$success: #5cb85c !default;
+$info: #a2afc7 !default;
+$warning: #f0ad4e !default;
+$danger: #d9534f !default;
 
+@import "bootstrap/scss/bootstrap";
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Special+Elite&display=swap');
 
-html {
-    font-size: 0.8rem;
-}
 
 body {
-    font-family: 'Work Sans', sans-serif;
+    font-family: 'DM Sans', sans-serif;
     background: #eceff0;
-    padding-bottom: 2em;
+    padding-top: 3.6em;
+    color: #666;
+}
+
+.navbar a.nav-link {
+    color: #333 !important;
+}
+
+.more-rounded {
+    border-radius: 1.5em;
+}
+
+.hero-section {
+    background-color: #2F1893;
+    font-family: 'Special Elite', sans-serif;
+    
+    
+    .hero-inner-bg {
+        background-size: cover !important;
+    }
+
+
+
+}
+
+.highlight {
+    color: #fff;
+    display: inline-block;
+    border-radius: 5px;
+    padding: 0 5px;
+
+}
+
+.highlight-PERSON {
+    background-color: #f166a9;
+}
+
+.highlight-ORG {
+    background-color: #0eacb6;
+}
+
+.highlight-LOC {
+    background-color: #f0a00d;
+}
+
+.highlight-GPE {
+    background-color: #0bd05a;
+}
+
+.highlight-NORP {
+    background-color: #c6d00b;
+}
+
+.highlight-FAC {
+    background-color: #0b9dd0;
+}
+
+.highlight-EVENT {
+    background-color: #d00b0b;
+}
+
+.highlight-PRODUCT {
+    background-color: #d00b0b;
+}
+
+.highlight-WORK_OF_ART {
+    background-color: #d00b0b;
+}
+
+.highlight-LAW {
+    background-color: #d00b0b;
+}
+
+.highlight-LANGUAGE {
+    background-color: #d00b0b;
+}
+
+.highlight-DATE {
+    background-color: #d00b0b;
+}
+
+.highlight-TIME {
+    background-color: #d00b0b;
+}
+
+.highlight-PERCENT {
+    background-color: #d00b0b;
+}
+
+.highlight-MONEY {
+    background-color: #d00b0b;
+}
+
+.highlight-QUANTITY {
+    background-color: #d00b0b;
+}
+
+.highlight-ORDINAL {
+    background-color: #d00b0b;
+}
+
+.highlight-CARDINAL {
+    background-color: #d00b0b;
+}
+
+.highlight-PRODUCT {
+    background-color: #d00b0b;
+}
+
+.DexiBadge {
+    font-size: 14px;
+    padding: 0.2em 0.5em;
+    font-weight: bold;
+    border-radius: 5px;
 }
 
 
-@layer components {
-    .btn-primary {
-        @apply py-2 px-4 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75;
-    }
+.features-block {
+    font-size: 0.9em;
+}
+
+footer {
+    background: #44434A;
 }
