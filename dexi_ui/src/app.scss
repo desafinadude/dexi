@@ -53,86 +53,100 @@ body {
 }
 
 .highlight-PERSON {
-    background-color: #f166a9;
+    background-color: #D989B8;
 }
 
 .highlight-ORG {
-    background-color: #0eacb6;
+    background-color: #7D93B0;
 }
 
 .highlight-LOC {
-    background-color: #f0a00d;
+    background-color: #9DC2BE;
 }
 
 .highlight-GPE {
-    background-color: #0bd05a;
+    background-color: #8268AB;
 }
 
 .highlight-NORP {
-    background-color: #c6d00b;
+    background-color: #FFC18C;
 }
 
 .highlight-FAC {
-    background-color: #0b9dd0;
+    background-color: #F5DFB3;
+}
+
+
+
+.highlight-LAW {
+    background-color: #9DF5F0;
 }
 
 .highlight-EVENT {
-    background-color: #d00b0b;
+    background-color: #9DF5F0;
 }
 
 .highlight-PRODUCT {
-    background-color: #d00b0b;
+    background-color: #9DF5F0;
 }
 
 .highlight-WORK_OF_ART {
-    background-color: #d00b0b;
+    background-color: #9DF5F0;
 }
 
-.highlight-LAW {
-    background-color: #d00b0b;
-}
 
 .highlight-LANGUAGE {
-    background-color: #d00b0b;
+    background-color: #9DF5F0;
 }
 
 .highlight-DATE {
-    background-color: #d00b0b;
+    background-color: #9DF5F0;
 }
 
 .highlight-TIME {
-    background-color: #d00b0b;
+    background-color: #9DF5F0;
 }
 
 .highlight-PERCENT {
-    background-color: #d00b0b;
+    background-color: #9DF5F0;
 }
 
 .highlight-MONEY {
-    background-color: #d00b0b;
+    background-color: #9DF5F0;
 }
 
 .highlight-QUANTITY {
-    background-color: #d00b0b;
+    background-color: #9DF5F0;
 }
 
 .highlight-ORDINAL {
-    background-color: #d00b0b;
+    background-color: #9DF5F0;
 }
 
 .highlight-CARDINAL {
-    background-color: #d00b0b;
-}
-
-.highlight-PRODUCT {
-    background-color: #d00b0b;
+    background-color: #9DF5F0;
 }
 
 .DexiBadge {
-    font-size: 14px;
+    font-size: 12px;
     padding: 0.2em 0.5em;
     font-weight: bold;
-    border-radius: 5px;
+    border-radius: 8px;
+}
+
+.entityDetails {
+    font-size: 14px;
+}
+
+.docMeta {
+    list-style: none;
+    padding: 0;
+    font-size: 0.9em;
+
+    li {
+        display: inline-block;
+        margin-right: 1em;
+    }
 }
 
 

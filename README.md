@@ -1,6 +1,6 @@
 ## Dexi UI
 
-The Dexi UI is built with React and Tailwind CSS
+The Dexi UI is built with React and React-Bootstrap
 
 ## Django
 
@@ -11,15 +11,17 @@ Django is used for managing users and as the backend of our API.
 
 ## Storage
 
-Storage us currently set to use a S3 bucket
+Storage is currently set to use a S3 bucket
 
 ## Celery
+
+Celery handles text and entity/extraction
 
 ## Redis
 
 ## Flower
 
-Monitor tasks with Flower:
+Monitor celery tasks with Flower:
 
 ```
 http://localhost:5555/

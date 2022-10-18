@@ -13,7 +13,7 @@ import Button from 'react-bootstrap/Button';
 import Dropdown from 'react-bootstrap/Dropdown';
 import DropdownButton from 'react-bootstrap/DropdownButton';
 import Badge from 'react-bootstrap/Badge';
-import Accordion from 'react-bootstrap/Accordion';
+import ListGroup from 'react-bootstrap/ListGroup';
 
 
 
@@ -29,56 +29,36 @@ export class EntityList extends React.Component {
                 {
                     name: 'Entity',
                     selector: row => row.entity,
-                    cell: row => row.entity,
-                    maxWidth: '300px'
+                    cell: row => <strong>{row.entity}</strong>,
+                    sortable: true
                 },
                 {
                     name: 'Schema',
                     selector: row => row.schema,
                     cell: row => <div className={'DexiBadge highlight highlight-' + row.schema}>{row.schema}</div>,
-                    maxWidth: '120px'
+                    maxWidth: '120px',
+                    sortable: true
+                },
+                {
+                    name: 'Count',
+                    selector: row => row.count,
+                    maxWidth: '100px',
+                    center: true,
+                    sortable: true
                 },
                 {
                     name: 'Documents',
-                    selector: row => row.found,
-                    cell: row => {
-                        let docs = [];
-                        row.found.forEach((f) => 
-                        {
-                            docs.push(
-                                <div key={'doc-' + row.id + f.doc.id}><a className="text-decoration-none" href={'/doc/' + f.doc.id}>{f.doc.name}</a> {f.page.join(',')}</div>
-                            )
-                        })
-                        return (<Accordion flush style={{background: 'transparent'}}>
-                            <Accordion.Item eventKey="0">
-                                <Accordion.Header>Found in <Badge className="mx-1">{docs.length}</Badge> Documents</Accordion.Header>
-                                <Accordion.Body>{docs}</Accordion.Body>
-                            </Accordion.Item>
-                        </Accordion>);
-                    },
-                    
-                    maxWidth: '300px'
+                    selector: row => row.found.length,
+                    maxWidth: '100px',
+                    center: true,
+                    sortable: true
                 },
                 {
                     name: 'Folders',
-                    selector: row => row.found,
-                    cell: row => {
-                        let folders = [];
-                        let foldersShow = [];
-                        row.found.forEach((f) => 
-                        {
-                            if(folders.find(folder => folder.id === f.doc.folder.id) == undefined) {
-                                folders.push(f.doc.folder)
-                            }
-                        })
-                        folders.forEach((folder) => {
-                            foldersShow.push(
-                                <Badge bg="info" className="me-1">{folder.name}</Badge>
-                            )
-                        })
-
-                        return foldersShow;
-                    }
+                    selector: row => row.folders.length,
+                    maxWidth: '100px',
+                    center: true,
+                    sortable: true
                 }
 
             ],
@@ -117,32 +97,46 @@ export class EntityList extends React.Component {
             }})
             .then((response) => {
 
-                console.log(response);
+                
 
                 let entities = [];
                 
                 response.data.forEach((entity) => {
+
+                    // DOCUMENTS
                     
                     if(entities.find(e => e.entity === entity.entity) == undefined) {
                         entities.push({
                             entity: entity.entity,
                             schema: entity.schema,
+                            count: 1,
+                            folders: [],
                             found: [{
                                 doc: entity.doc,
                                 page: [entity.page]
                             }]
                         })
                     } else {
+                        
+
                         if(entities.find(e => e.entity === entity.entity).found.find(f => f.doc.id === entity.doc.id) == undefined) {
                             entities.find(e => e.entity === entity.entity).found.push({
                                 doc: entity.doc,
                                 page: [entity.page]
                             })
+                            entities.find(e => e.entity === entity.entity).count++;
                         } else {
                             if(entities.find(e => e.entity === entity.entity).found.find(f => f.doc.id === entity.doc.id).page.indexOf(entity.page) == -1) {
                                 entities.find(e => e.entity === entity.entity).found.find(f => f.doc.id === entity.doc.id).page.push(entity.page)
                             }
+                            entities.find(e => e.entity === entity.entity).count++;
                         }
+
+                    }
+
+                    // FOLDERS
+                    if(entities.find(e => e.entity === entity.entity).folders.find(f => f.id === entity.doc.folder.id) == undefined) {
+                        entities.find(e => e.entity === entity.entity).folders.push(entity.doc.folder)
                     }
 
                         
@@ -188,6 +182,12 @@ export class EntityList extends React.Component {
                     selectableRows
                     onSelectedRowsChange={this.selectRows}
                     progressPending={this.state.pending}
+                    expandableRows={true}
+                    expandableRowsComponent={EntityDetails}
+                    expandOnRowClicked={true}
+                    expandOnRowDoubleClicked={false}
+                    expandableRowsHideExpander={false}
+                    pagination={false}
                 />
 
             </Container>
@@ -195,5 +195,31 @@ export class EntityList extends React.Component {
         )
 
     }
+
+}
+
+const EntityDetails = ({ data }) => {
+    
+    return (<ListGroup as="ol" variant="flush" className="entityDetails py-3">
+    {
+        data.found.map((f) => {
+            return (
+                <ListGroup.Item as="li" key={f.doc.id}>
+                    <div className="ms-5 me-auto">
+                        <div className="fw-bold"><a className="text-decoration-none" href={'/doc/' + f.doc.id}>{f.doc.name}</a> <Badge bg="info">{f.doc.folder.name}</Badge>
+                        <>
+                        {
+                            f.page.reverse().map((p) => {
+                                return <Badge key={p} className="mx-1" variant="info">{p}</Badge>
+                            })
+                        }
+                        </>
+                        </div>
+                    </div>
+                </ListGroup.Item>
+            )
+        })
+    }
+    </ListGroup>)
 
 }

@@ -7,6 +7,7 @@ from django.contrib import messages
 from django.views.generic import ListView
 from django.views.generic.edit import FormView
 from django.shortcuts import redirect
+from django.db.models.functions import Lower
 from .models import Entity
 from .serializers import EntitySerializer
 
@@ -19,9 +20,9 @@ class EntityListApiView(APIView):
     def get(self, request, *args, **kwargs):
         
         if(kwargs.get('doc_id')):
-            entities = Entity.objects.filter(doc_id=kwargs.get('doc_id')).order_by('id')
+            entities = Entity.objects.filter(doc_id=kwargs.get('doc_id')).order_by(Lower('entity'))
         else:
-            entities = Entity.objects.select_related('doc').order_by('entity')
+            entities = Entity.objects.select_related('doc').order_by(Lower('entity'))
 
         serializer = EntitySerializer(entities, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

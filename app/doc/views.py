@@ -24,9 +24,9 @@ class DocListApiView(APIView):
 
     def get(self, request, *args, **kwargs):
         if(kwargs.get('folder_id')):
-            docs = Doc.objects.filter(folder_id=kwargs.get('folder_id'), user_id=request.user.id, deleted_at__isnull=True).order_by('id')
+            docs = Doc.objects.filter(folder_id=kwargs.get('folder_id'), user_id=request.user.id).order_by('id')
         else:
-            docs = Doc.objects.filter(user_id = request.user.id, deleted_at__isnull=True).order_by('id')
+            docs = Doc.objects.filter(user_id = request.user.id).order_by('id')
         serializer = DocSerializer(docs, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -108,7 +108,7 @@ class DocListApiView(APIView):
                 docs = docs.values(*field_name_list)
     
                 for doc in docs:
-                    Doc.objects.filter(id=doc['id']).update(deleted_at=timezone.now())
+                    Doc.objects.filter(id=doc['id']).delete()
     
                 return Response('Deleted', status=status.HTTP_200_OK)
 
@@ -132,47 +132,10 @@ class DocDetailApiView(APIView):
     def get(self, request, doc_id, *args, **kwargs):
         
         doc_instance = self.get_object(doc_id, request.user.id)
-        if not doc_instance:
-            return Response(
-                {"res": "Object with doc id does not exists"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
+        
         serializer = DocSerializer(doc_instance)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    
-    def put(self, request, doc_id, *args, **kwargs):
-        
-        doc_instance = self.get_object(doc_id, request.user.id)
-        if not doc_instance:
-            return Response(
-                {"res": "Object with doc id does not exists"}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        data = {
-            'name': request.data.get('name'),
-            'file': request.data.get('file'),
-            'folder': request.data.get('folder'),  
-            'user': request.user.id
-        }
-        serializer = DocSerializer(instance = doc_instance, data=data, partial = True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     
-    def delete(self, request, doc_id, *args, **kwargs):
-        
-        doc_instance = self.get_object(doc_id, request.user.id)
-        if not doc_instance:
-            return Response(
-                {"res": "Object with doc id does not exists"}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        doc_instance.delete()
-        return Response(
-            {"res": "Object deleted!"},
-            status=status.HTTP_200_OK
-        )
+   

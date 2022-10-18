@@ -10,14 +10,16 @@ import Tab from 'react-bootstrap/Tab';
 import Tabs from 'react-bootstrap/Tabs';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
+import Button from 'react-bootstrap/Button';
 
 import DataTable, { defaultThemes } from 'react-data-table-component';
 
 import parse from "html-react-parser";
 
-
 import { Document, Page } from 'react-pdf/dist/esm/entry.parcel2';
-import { mdiSelectGroup, mdiSkullCrossbonesOutline } from '@mdi/js';
+
+import Icon from '@mdi/react';
+import { mdiCalendarMonth, mdiFile, mdiFolder } from '@mdi/js';
 
 function withParams(Component) {
     return props => <Component {...props} params={useParams()} />;
@@ -75,6 +77,7 @@ export class DocView extends React.Component {
             }})
             .then((response) => {
                 self.setState({doc: response.data}, () => {
+                    console.log(response);
                     self.getEntities();
                 })
             })
@@ -126,6 +129,7 @@ export class DocView extends React.Component {
                 self.setState({text: convertedText});
 
 
+
             })
             .catch((error) => {
                 console.log(error);
@@ -161,6 +165,11 @@ export class DocView extends React.Component {
                 <Container className="my-4">
 
                     <h2>{this.state.doc.name}</h2>
+                    <ul class="docMeta">
+                        <li><Icon path={mdiFile} size={0.7} color='#666'/> {this.state.doc.file}</li>
+                        <li><Icon path={mdiCalendarMonth} size={0.7} color='#666'/> {this.state.doc.created_at}</li>
+                        <li><Icon path={mdiFolder} size={0.7} color='#666'/> </li>
+                    </ul>
 
                     <Tabs activeKey={this.state.tab} onSelect={(k) => this.setState({tab: k})} className="mt-3">
                         
@@ -168,10 +177,10 @@ export class DocView extends React.Component {
                             <Document file={this.state.doc.file} onLoadSuccess={this.onDocumentLoadSuccess}>
                                 <Page pageNumber={this.state.pdf_pageNumber} width={800}/>
                             </Document>
-                            <div>
+                            <div className="text-center mt-2 mb-4">
                                 <p>Page {this.state.pdf_pageNumber || (this.state.pdf_numPages ? 1 : '--')} of {this.state.pdf_numPages || '--'}</p>
-                                <button type="button" disabled={this.state.pdf_pageNumber <= 1} onClick={this.previousPage}>Previous</button>
-                                <button type="button" disabled={this.state.pdf_pageNumber >= this.state.pdf_numPages} onClick={this.nextPage}>Next</button>
+                                <Button type="button" disabled={this.state.pdf_pageNumber <= 1} onClick={this.previousPage}>Previous</Button>
+                                <Button type="button" disabled={this.state.pdf_pageNumber >= this.state.pdf_numPages} onClick={this.nextPage}>Next</Button>
                             </div>
                         </Tab>
 
@@ -181,12 +190,12 @@ export class DocView extends React.Component {
                                     {parse(this.state.text)}
                                 </Col>
                                 <Col>
-                                <DataTable
-                                    columns={this.state.columns}
-                                    data={this.state.entities}
-                                    dense={true}
-                                    striped={true}
-                                />
+                                    <DataTable
+                                        columns={this.state.columns}
+                                        data={this.state.entities}
+                                        dense={true}
+                                        striped={true}
+                                    />
                                 </Col>
                             </Row>
                         </Tab>

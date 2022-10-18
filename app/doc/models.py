@@ -26,7 +26,6 @@ class Doc(models.Model):
     status = models.ForeignKey(Status, on_delete=models.DO_NOTHING, null = True)
     type = models.CharField(max_length = 180, null = True)
     created_at = models.DateTimeField(auto_now_add = True)
-    deleted_at = models.DateTimeField(null = True, blank = True)
 
     def __str__(self):
         return self.name
