@@ -14,6 +14,7 @@ import Dropdown from 'react-bootstrap/Dropdown';
 import DropdownButton from 'react-bootstrap/DropdownButton';
 import Badge from 'react-bootstrap/Badge';
 import ListGroup from 'react-bootstrap/ListGroup';
+import { mdiSelectGroup } from '@mdi/js';
 
 
 
@@ -65,6 +66,7 @@ export class EntityList extends React.Component {
             folders: [],
             entities: [],
             selectedRows: [],
+            selectedFolder: undefined
         }
         
     }
@@ -76,9 +78,21 @@ export class EntityList extends React.Component {
 
         if(isTokenSet()) {
             this.setState({tokenSet: true});
+        } else {
+            window.location.href='/';
         }
 
-        // Get Folders List
+        self.getFolders();
+        self.getEntities();
+        
+
+        
+    }
+
+
+    getFolders = () => {
+        let self = this;
+
         axios.get(process.env.API + '/folder/api', { headers: {
             "Authorization": "token " + getCookie('dexitoken')
             }})
@@ -88,16 +102,20 @@ export class EntityList extends React.Component {
             .catch((error) => {
                 console.log(error);
             })
+    }
 
-        
+    getEntities = () => {
 
-        // Get Entity List
-        axios.get(process.env.API + '/entity/api', { headers: {
+        let self = this;
+
+        let url = self.state.selectedFolder ? process.env.API + '/entity/api/folder/' + self.state.selectedFolder.id : process.env.API + '/entity/api';
+
+        axios.get(url, { headers: {
             "Authorization": "token " + getCookie('dexitoken')
             }})
             .then((response) => {
 
-                
+                console.log(response);
 
                 let entities = [];
                 
@@ -146,51 +164,82 @@ export class EntityList extends React.Component {
                 self.setState({entities: entities, pending: false});
 
 
-
-
             })
             .catch((error) => {
                 console.log(error);
             })
     }
 
+    exportEntities = () => {
+        let self = this;
+
+        
+        
+        
+
+
+    }
+
+    selectFolder = (e) => {
+        let self = this;
+        e.target.value == 'all' ? self.setState({selectedFolder: undefined}) : self.setState({selectedFolder: self.state.folders.find((folder) => folder.id == e.target.value)},
+        () => {
+            self.getEntities();
+        });
+        
+    }
+
+    selectRows = ({ selectedRows }) => {
+        let self = this;
+        self.setState({selectedRows: selectedRows});
+    }
+
 
     render() {
-        return (
+        return (<section className="pt-5" style={{minHeight: '100vh'}}>
 
-            <Container className="my-4">
+                <Container className="my-4">
 
-               
-                <Row className="mb-2">
-                    <Col md="auto">
-                        <Form.Select size="sm" onChange={(e) => this.selectFolder(e)}>
-                            <option value="">All Folders</option>
-                            {this.state.folders.map((folder) => (
-                                <option key={folder.id} value={folder.id}>{folder.name}</option>
-                            ))}
-                        </Form.Select>
-                    </Col>
-                </Row>
+                
+                    <Row className="mb-2">
+                        <Col>
+                            <h4 className="fw-normal">{this.state.selectedFolder ? this.state.selectedFolder.name : 'All Entities'}</h4>
+                        </Col>
+                        <Col md="auto">
+                            <DropdownButton variant="primary" title="DO SOMETHING" size="sm" className="d-inline-block mx-1">
+                                <Dropdown.Item onClick={() => this.entityAction('export')}>Export Entities</Dropdown.Item>
+                                <Dropdown.Item onClick={() => this.entityAction('delete')}>Delete Entity</Dropdown.Item>
+                            </DropdownButton>
+                            <Form.Select size="sm" onChange={(e) => this.selectFolder(e)} className="animate__animated animate__fadeIn d-inline-block w-auto me-1 h-100">
+                                <option value="">All Projects</option>
+                                {this.state.folders.map((folder) => (
+                                    <option key={folder.id} value={folder.id}>{folder.name}</option>
+                                ))}
+                            </Form.Select>
+                        </Col>
+                    </Row>
 
-                <DataTable
-                    columns={this.state.columns}
-                    data={this.state.entities}
-                    dense={false}
-                    striped={true}
-                    fixedHeader={true}
-                    highlightOnHover={true}
-                    selectableRows
-                    onSelectedRowsChange={this.selectRows}
-                    progressPending={this.state.pending}
-                    expandableRows={true}
-                    expandableRowsComponent={EntityDetails}
-                    expandOnRowClicked={true}
-                    expandOnRowDoubleClicked={false}
-                    expandableRowsHideExpander={false}
-                    pagination={false}
-                />
+                    <DataTable
+                        columns={this.state.columns}
+                        data={this.state.entities}
+                        dense={false}
+                        striped={true}
+                        fixedHeader={true}
+                        highlightOnHover={true}
+                        selectableRows
+                        onSelectedRowsChange={this.selectRows}
+                        progressPending={this.state.pending}
+                        expandableRows={true}
+                        expandableRowsComponent={EntityDetails}
+                        expandOnRowClicked={true}
+                        expandOnRowDoubleClicked={false}
+                        expandableRowsHideExpander={false}
+                        pagination={false}
+                    />
 
-            </Container>
+                </Container>
+
+            </section>
 
         )
 

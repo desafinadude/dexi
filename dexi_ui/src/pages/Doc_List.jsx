@@ -60,9 +60,9 @@ export class DocList extends React.Component {
                     maxWidth: '50px'
                 },
                 {
-                    name: 'Folder',
+                    name: 'Project',
                     selector: row => <Badge bg="info">{this.state.folders.find(folder => folder.id == row.folder).name}</Badge>,
-                    maxWidth: '60px'
+                    maxWidth: '150px'
                 },
                 {
                     name: 'Created',
@@ -131,19 +131,11 @@ export class DocList extends React.Component {
 
         if(isTokenSet()) {
             this.setState({tokenSet: true});
+        } else {
+            window.location.href='/';
         }
 
-        // Get Folders List
-        axios.get(process.env.API + '/folder/api', { headers: {
-            "Authorization": "token " + getCookie('dexitoken')
-            }})
-            .then((response) => {
-                self.setState({ folders: response.data })
-            })
-            .catch((error) => {
-                console.log(error);
-            })
-
+        self.getFolders();
         self.getDocs();    
 
         // GetDocs every 5 seconds
@@ -155,12 +147,25 @@ export class DocList extends React.Component {
         
     }
 
+    getFolders = () => {
+        let self = this;
+        axios.get(process.env.API + '/folder/api', { headers: {
+            "Authorization": "token " + getCookie('dexitoken')
+            }})
+            .then((response) => {
+                self.setState({ folders: response.data })
+            })
+            .catch((error) => {
+                console.log(error);
+            })
+    }
+
     getDocs = () => {
-        console.log('Getting Docs');
+        
 
         let self = this;
 
-        let url = self.state.selectedFolder ? process.env.API + '/doc/api/folder/' + self.state.selectedFolder : process.env.API + '/doc/api';
+        let url = self.state.selectedFolder ? process.env.API + '/doc/api/folder/' + self.state.selectedFolder.id : process.env.API + '/doc/api';
 
         axios.get(url, 
             { 
@@ -179,70 +184,83 @@ export class DocList extends React.Component {
         self.setState({selectedRows: selectedRows});
     }
 
-    docAction = (e) => {
+    docAction = (action) => {
         let self = this;
         if (self.state.selectedRows.length > 0) {
 
-            if(e.target.value == 'convert') {
+            if(action == 'convert') {
 
                 // CONVERT
 
-                console.log('Sending for conversion');
-                self.setState({alert: {show: true, variant: 'success', message: 'Sending for conversion'}});
+                if(self.state.selectedRows.filter(doc => doc.status >= 3).length > 0) {
+                    self.setState({alert: {show: true, variant: 'danger', message: 'Some documents are already converted'}});
+                }  else {
+
+                    self.setState({alert: {show: true, variant: 'success', message: 'Converting your documents to text. This can take a while.'}});
 
 
-                var newFormData = new FormData();
+                    var newFormData = new FormData();
 
-                newFormData.append("docs", self.state.selectedRows.map(doc => doc.id).join(','));
-                newFormData.append("action", "convert");
-            
-                axios.post(process.env.API + '/doc/api/', newFormData, { headers: {
-                    "Authorization": "token " + getCookie('dexitoken')
-                    }})
-                    .then((response) => {
-                        console.log(response)
-                    })
-                    .catch((error) => {
-                        console.log(error);
-                    })
+                    newFormData.append("docs", self.state.selectedRows.map(doc => doc.id).join(','));
+                    newFormData.append("action", "convert");
                 
-            }
-            if(e.target.value == 'extract') {
-                
-                // EXTRACT
+                    axios.post(process.env.API + '/doc/api/', newFormData, { headers: {
+                        "Authorization": "token " + getCookie('dexitoken')
+                        }})
+                        .then((response) => {
+                            console.log(response)
+                        })
+                        .catch((error) => {
+                            console.log(error);
+                        })
 
-                let alert = {
-                    show: true,
-                    variant: 'success',
-                    message: 'Extracting Entities'
                 }
+                
+            }
+            if(action == 'extract') {
 
-                self.setState({alert: alert});
+                if(self.state.selectedRows.filter(doc => doc.status >= 4).length > 0) {
+                    self.setState({alert: {show: true, variant: 'danger', message: 'Some documents are already extracted'}});
+                } else if(self.state.selectedRows.filter(doc => doc.status <= 2).length > 0) {
+                    self.setState({alert: {show: true, variant: 'danger', message: 'Some documents have not been converted to text'}});
+                }  else {
 
-                var newFormData = new FormData();
+                    // EXTRACT
 
-                newFormData.append("docs", self.state.selectedRows.map(doc => doc.id).join(','));
-                newFormData.append("action", "extract");
-            
-                axios.post(process.env.API + '/doc/api/', newFormData, { headers: {
-                    "Authorization": "token " + getCookie('dexitoken')
-                    }})
-                    .then((response) => {
-                        console.log(response)
-                    })
-                    .catch((error) => {
-                        console.log(error);
-                    })
+                    let alert = {
+                        show: true,
+                        variant: 'success',
+                        message: 'Extracting Entities'
+                    }
+
+                    self.setState({alert: alert});
+
+                    var newFormData = new FormData();
+
+                    newFormData.append("docs", self.state.selectedRows.map(doc => doc.id).join(','));
+                    newFormData.append("action", "extract");
+                
+                    axios.post(process.env.API + '/doc/api/', newFormData, { headers: {
+                        "Authorization": "token " + getCookie('dexitoken')
+                        }})
+                        .then((response) => {
+                            console.log(response)
+                        })
+                        .catch((error) => {
+                            console.log(error);
+                        })
+
+                }
             }
 
-            if(e.target.value == 'move') {
+            if(action == 'move') {
 
                 // MOVE
 
                 self.showModal('move');
             }
 
-            if(e.target.value == 'delete') {
+            if(action == 'delete') {
 
                 self.setState({alert: {show: true, variant: 'success', message: 'Deleting'}});
                 
@@ -270,8 +288,6 @@ export class DocList extends React.Component {
             alert('No documents Selected');
         }
 
-        this.docActionRef.current.value = '';
-
     }
 
     onNameChange = (e) => {
@@ -280,7 +296,7 @@ export class DocList extends React.Component {
 
     selectFolder = (e) => {
         let self = this;
-        e.target.value == 'all' ? self.setState({selectedFolder: undefined}) : self.setState({selectedFolder: e.target.value});
+        e.target.value == 'all' ? self.setState({selectedFolder: undefined}) : self.setState({selectedFolder: self.state.folders.find((folder) => folder.id == e.target.value)});
         self.getDocs();
     }
     
@@ -297,9 +313,9 @@ export class DocList extends React.Component {
     }
 
     render() {
-        return (<section className="vh-100 pt-5">
+        return (<section className="pt-5" style={{minHeight: '100vh'}}>
 
-            <Container fluid>
+            <Container>
                 <DexiAlert alert={this.state.alert} />
             </Container>
 
@@ -307,30 +323,29 @@ export class DocList extends React.Component {
 
                 <Row className="mb-2">
                     <Col>
-                        <DropdownButton variant="primary" title="NEW" size="sm">
-                            <Dropdown.Item onClick={() => this.showModal('upload')}>Document</Dropdown.Item>
-                            <Dropdown.Item onClick={() => this.showModal('folder')}>Folder</Dropdown.Item>
-                            <Dropdown.Item onClick={() => this.showModal('reference')}>Reference</Dropdown.Item>
-                        </DropdownButton>
+                        <h4 className="fw-normal">{this.state.selectedFolder ? this.state.selectedFolder.name : 'All Documents'}</h4>
                     </Col>
                     <Col md="auto">
-                        <Form.Select size="sm" onChange={(e) => this.selectFolder(e)} className="animate__animated animate__fadeIn">
-                            <option value="">All Folders</option>
+                        <DropdownButton variant="primary" title="NEW" size="sm" className="d-inline-block">
+                            <Dropdown.Item onClick={() => this.showModal('upload')}>Document</Dropdown.Item>
+                            <Dropdown.Item onClick={() => this.showModal('folder')}>Project</Dropdown.Item>
+                            <Dropdown.Item onClick={() => this.showModal('reference')}>Reference</Dropdown.Item>
+                        </DropdownButton>
+                        
+                        <DropdownButton variant="primary" title="DO SOMETHING" size="sm" className="d-inline-block mx-1">
+                            <Dropdown.Item onClick={() => this.docAction('convert')}>Convert To Text</Dropdown.Item>
+                            <Dropdown.Item onClick={() => this.docAction('extract')}>Extract Entities</Dropdown.Item>
+                            <Dropdown.Item onClick={() => this.docAction('move')}>Move To Project</Dropdown.Item>
+                            <Dropdown.Item onClick={() => this.docAction('delete')}>Delete File</Dropdown.Item>
+                        </DropdownButton>
+
+                        <Form.Select size="sm" onChange={(e) => this.selectFolder(e)} className="animate__animated animate__fadeIn d-inline-block w-auto me-1 h-100">
+                            <option value="">All Projects</option>
                             {this.state.folders.map((folder) => (
                                 <option key={folder.id} value={folder.id}>{folder.name}</option>
                             ))}
                         </Form.Select>
-                    </Col>
-                    <Col md="auto" >
-                        <Form.Select size="sm" onChange={this.docAction} ref={this.docActionRef} className="animate__animated animate__fadeIn">
-                            <option value="">Do something</option>
-                            <option value="convert">Convert To Text</option>
-                            <option value="extract">Extract Entities</option>
-                            <option value="move">Move To Folder</option>
-                            <option value="delete">Delete File</option>
-                        </Form.Select>
-                    </Col>
-                    <Col md="auto">
+                        
                         <Button size="sm" variant="info" onClick={() => this.getDocs()}><Icon path={mdiRefresh} size={0.7} color="#fff"/></Button>
                     </Col>
                 </Row>
@@ -350,11 +365,11 @@ export class DocList extends React.Component {
                
                <Modal centered show={this.state.showModal} onHide={() => this.setState({showModal: false})}>
                     <Modal.Header closeButton>
-                        <Modal.Title>{this.state.showUpload ? 'Upload Documents' : this.state.showFolder ? 'Create Folder' : this.state.showMoveDoc ? 'Move Document' : 'Upload Reference'}</Modal.Title>
+                        <Modal.Title>{this.state.showUpload ? 'Upload Documents' : this.state.showFolder ? 'Create Project' : this.state.showMoveDoc ? 'Move Document' : 'Upload Reference'}</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
                         { this.state.showUpload && <Upload folders={this.state.folders} onHide={() => this.setState({showModal: false})} /> }
-                        { this.state.showFolder && <Folder onHide={() => this.setState({showModal: false})} /> }
+                        { this.state.showFolder && <Folder onHide={() => this.setState({showModal: false})} onGetFolders={() => this.getFolders()} selectedFolder={this.state.selectedFolder}/> }
                         { this.state.showMoveDoc && <MoveDoc folders={this.state.folders} docs={this.state.selectedRows} onHide={() => this.setState({showModal: false})} /> }
                         { this.state.showReferenceUpload && <UploadReference /> }
                     </Modal.Body>

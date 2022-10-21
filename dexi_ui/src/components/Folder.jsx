@@ -13,8 +13,6 @@ export class Folder extends React.Component {
     
     onFormSubmit = (e) => {
 
-        
-
         e.preventDefault();
         
         const formData = new FormData(e.target), formDataObj = Object.fromEntries(formData.entries());
@@ -22,13 +20,15 @@ export class Folder extends React.Component {
         var newFormData = new FormData();
 
         newFormData.append("name", formDataObj.name);
+        newFormData.append("action", "new");
 
         axios.post(process.env.API + '/folder/api', newFormData,{ headers: {
             "Authorization": "token " + getCookie('dexitoken')
             }
         })
         .then((response) => {
-            window.location.href = "/folder";
+            this.props.onHide();
+            this.props.onGetFolders();
         })
         .catch((error) => {
             console.log(error);
@@ -40,9 +40,13 @@ export class Folder extends React.Component {
     render() {
         return (
         
+        
+
         <Form onSubmit={this.onFormSubmit}>
             
-            <Form.Control name="name" type="text" size="sm" placeholder="Folder Name" />
+            {this.props.selectedFolder}
+
+            <Form.Control name="name" type="text" size="sm" placeholder="Project Name" />
         
             <Button className="mt-4" variant="primary" size="sm" type="submit">Submit</Button>
                 

@@ -21,7 +21,7 @@ class Doc(models.Model):
     uuid = models.UUIDField(default = uuid.uuid4(), editable=False)
     name = models.CharField(max_length = 180, null = True)
     file = models.FileField(null = True, upload_to=get_file_path)
-    folder = models.ForeignKey(Folder, on_delete=models.CASCADE)
+    folder = models.ForeignKey(Folder, on_delete=models.CASCADE, null = True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     status = models.ForeignKey(Status, on_delete=models.DO_NOTHING, null = True)
     type = models.CharField(max_length = 180, null = True)

@@ -24,3 +24,8 @@ export const isTokenSet = () => {
         return true;
     }
 }
+
+export const logout = () => {
+       document.cookie = "dexitoken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+       window.location.href = "/";
+}

@@ -1,16 +1,10 @@
-$gray-base: #666 !default;
-$gray-darker: lighten($gray-base, 13.5%) !default; // #222
-$gray-dark: #67655D; // #333
-$gray: #B74934; // #555
-$gray-light: #AA9A66; // #777
-$gray-lighter: #A8A8A1; // #eee
-
-$primary: #0eacb6; // #337ab7
-$secondary: #f166a9; // #337ab7
+$primary: #095b74 !default;
+$secondary: #f166a9 !default;
 $success: #5cb85c !default;
 $info: #a2afc7 !default;
 $warning: #f0ad4e !default;
 $danger: #d9534f !default;
+
 
 @import "bootstrap/scss/bootstrap";
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Special+Elite&display=swap');
@@ -20,7 +14,7 @@ body {
     font-family: 'DM Sans', sans-serif;
     background: #eceff0;
     padding-top: 3.6em;
-    color: #666;
+    
 }
 
 .navbar a.nav-link {
@@ -33,15 +27,16 @@ body {
 
 .hero-section {
     background-color: #2F1893;
-    font-family: 'Special Elite', sans-serif;
+    font-family: 'Special Elite', serif;
     
     
     .hero-inner-bg {
         background-size: cover !important;
     }
+}
 
-
-
+.font-special-elite {
+    font-family: 'Special Elite', serif;
 }
 
 .highlight {
@@ -76,8 +71,6 @@ body {
     background-color: #F5DFB3;
 }
 
-
-
 .highlight-LAW {
     background-color: #9DF5F0;
 }
@@ -93,7 +86,6 @@ body {
 .highlight-WORK_OF_ART {
     background-color: #9DF5F0;
 }
-
 
 .highlight-LANGUAGE {
     background-color: #9DF5F0;
@@ -154,6 +146,32 @@ body {
     font-size: 0.9em;
 }
 
+.side-panel {
+    background: #eee;
+}
+
 footer {
     background: #44434A;
+}
+
+.custom-checkbox {
+    width: 1em;
+    height: 1em;
+    border-radius: 2px;
+    border: 1px solid #999;
+    position: relative;
+    top: -3px;
+}
+
+.custom-checkbox-checked {
+}
+
+.custom-checkbox-checked::after {
+    content: '✓';
+    color: #666;
+    position: absolute;
+    top: -8px;
+    font-weight: bold;
+    font-size: 1.4em;
+    
 }

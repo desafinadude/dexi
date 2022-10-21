@@ -18,9 +18,9 @@ from .tasks_extract import doc_extract
         
 
 class DocListApiView(APIView):
-    # add permission to check if user is authenticated
-    # permission_classes = [permissions.IsAuthenticated]
-    # authentication_classes = [authentication.TokenAuthentication]
+    
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [authentication.TokenAuthentication]
 
     def get(self, request, *args, **kwargs):
         if(kwargs.get('folder_id')):

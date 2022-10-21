@@ -11,6 +11,7 @@ import Tabs from 'react-bootstrap/Tabs';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
+import DropdownButton from 'react-bootstrap/DropdownButton';
 
 import DataTable, { defaultThemes } from 'react-data-table-component';
 
@@ -38,26 +39,36 @@ export class DocView extends React.Component {
             text: '',
             columns: [
                 {
-                    name: 'entity',
+                    name: 'Entity',
                     selector: row => row.entity,
+                    cell: row => <strong>{row.entity}</strong>,
+                    sortable: true
                 },
                 {
-                    name: 'pages',
+                    name: 'Count',
+                    selector: row => row.count,
+                    maxWidth: '20px',
+                    sortable: true
+                },
+                {
+                    name: 'Page',
                     selector: row => row.page,
-                },
-                {
-                    name: 'pos',
-                    selector: row => row.pos,
+                    maxWidth: '20px',
                 },
                 {
                     name: 'Schema',
                     selector: row => row.schema,
-                    maxWidth: '50px'
+                    cell: row => <div className={'DexiBadge highlight highlight-' + row.schema}>{row.schema}</div>,
+                    maxWidth: '80px',
+                    sortable: true
                 },
             ],
             entities: [],
             pdf_pageNumber: 1,
             pdf_numPages: null,
+            selectedSchemas: [],
+            schemas: ["ORG", "PERSON", "GPE", "NORP", "LOC", "FAC", "PRODUCT", "EVENT", "LAW", "LANGUAGE", "DATE"]
+            
         }
         
     }
@@ -70,6 +81,8 @@ export class DocView extends React.Component {
 
         if(isTokenSet()) {
             this.setState({tokenSet: true});
+        } else {
+            window.location.href='/';
         }
 
         axios.get(process.env.API + '/doc/api/' + docId, { headers: {
@@ -115,7 +128,7 @@ export class DocView extends React.Component {
                 // let convertedText = text.replaceAll(regex,"-------");
 
                 let convertedText = textParser.parseFromString(text.replaceAll(regex,"-------")
-                    .replaceAll('\n','<br/>'),'text/html')
+                    .replaceAll('\n\n','<br/><br/>'),'text/html')
                     .body.innerHTML;
 
                 let entities = self.state.entities;
@@ -137,7 +150,7 @@ export class DocView extends React.Component {
         
     }
 
-    getEntities() {
+    getEntities = () => {
 
         let self = this;
 
@@ -145,8 +158,32 @@ export class DocView extends React.Component {
             "Authorization": "token " + getCookie('dexitoken')
             }})
             .then((response) => {
-                self.setState({entities: response.data});
-                self.getDocText();
+                
+                let entities = [];
+                
+                response.data.forEach((entity) => {
+
+                    if(entities.find(e => e.entity === entity.entity) == undefined) {
+                        entities.push({
+                            entity: entity.entity,
+                            schema: entity.schema,
+                            count: 1,
+                            page: [entity.page]
+                        })
+                    } else {
+                        
+                        if(entities.find(e => e.entity === entity.entity).page.indexOf(entity.page) == -1) {
+                            entities.find(e => e.entity === entity.entity).page.push(entity.page)
+                        }
+
+                        entities.find(e => e.entity === entity.entity).count++;
+
+                    }
+                
+                })
+
+                self.setState({entities: entities}, () => self.getDocText());
+
             })
             .catch((error) => {
                 console.log(error);
@@ -165,10 +202,10 @@ export class DocView extends React.Component {
                 <Container className="my-4">
 
                     <h2>{this.state.doc.name}</h2>
-                    <ul class="docMeta">
-                        <li><Icon path={mdiFile} size={0.7} color='#666'/> {this.state.doc.file}</li>
+                    <ul className="docMeta">
+                        <li><Icon path={mdiFile} size={0.7} color='#666'/> <a className="text-decoration-none" href={this.state.doc.file}>{this.state.doc.file != undefined && this.state.doc.file.slice(this.state.doc.file.lastIndexOf('/') + 1)}</a></li>
                         <li><Icon path={mdiCalendarMonth} size={0.7} color='#666'/> {this.state.doc.created_at}</li>
-                        <li><Icon path={mdiFolder} size={0.7} color='#666'/> </li>
+                        {/* <li><Icon path={mdiFolder} size={0.7} color='#666'/> </li> */}
                     </ul>
 
                     <Tabs activeKey={this.state.tab} onSelect={(k) => this.setState({tab: k})} className="mt-3">
@@ -184,17 +221,23 @@ export class DocView extends React.Component {
                             </div>
                         </Tab>
 
-                        <Tab eventKey="text" title="Text" className="bg-white p-5">
+                        <Tab eventKey="text" title="Text and Entities" className="bg-white">
                             <Row>
-                                <Col md={8}>
-                                    {parse(this.state.text)}
+                                <Col md={6} className="p-5" style={{fontFamily: 'Courier'}}>
+                                    <pre>{this.state.text}</pre>
+                                    {/* {parse(this.state.text)} */}
                                 </Col>
-                                <Col>
+                                <Col md={6} className="side-panel">
+                                    <DropdownButton title="SCHEMAS" size="sm" className="mb-2">
+                                        <div className="d-inline-block me-2">
+                                            <div className={this.state.selectedSchemas.length ==  19 ? 'custom-checkbox custom-checkbox-checked' : 'custom-checkbox'} onClick={(e) => this.selectSchema(e)} value='All'/>
+                                        </div>
+                                        <div className="text-black d-inline-block ms-1" style={{position: 'relative', top: '-5px'}}>All Schemas</div>
+                                    </DropdownButton>
                                     <DataTable
                                         columns={this.state.columns}
                                         data={this.state.entities}
                                         dense={true}
-                                        striped={true}
                                     />
                                 </Col>
                             </Row>

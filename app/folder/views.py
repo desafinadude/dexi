@@ -2,12 +2,14 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions, authentication
 from .models import Folder
+from .models import Permission
 from .serializers import FolderSerializer
+from .serializers import FolderPermissionSerializer
 
 class FolderListApiView(APIView):
     
-    # permission_classes = [permissions.IsAuthenticated]
-    # authentication_classes = [authentication.TokenAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [authentication.TokenAuthentication]
 
     
     def get(self, request, *args, **kwargs):
@@ -18,17 +20,42 @@ class FolderListApiView(APIView):
 
     
     def post(self, request, *args, **kwargs):
-        
-        data = {
-            'name': request.data.get('name'),
-            'user': request.user.id
-        }
-        serializer = FolderSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if request.data.get('action') == 'new':
+        
+            data = {
+                'name': request.data.get('name'),
+                'user': request.user.id
+            }
+
+            serializer = FolderSerializer(data=data)
+            
+            if serializer.is_valid():
+                folder = serializer.save()
+                print(folder.id)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        elif request.data.get('action') == 'permissions':
+            
+
+            print('hello')
+
+                # data = {
+                #     'folder_id': request.data.get('name'),
+                #     'user_id': request.user.id
+                # }
+                
+                # serializer = FolderPermissionSerializer(data=request.data)
+                
+                # if serializer.is_valid():
+                #     serializer.save()
+                #     return Response('Done', status=status.HTTP_201_CREATED)
+    
+                # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            return Response({"res": "Permission"}, status=status.HTTP_200_OK)
 
 
 class FolderDetailApiView(APIView):

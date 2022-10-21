@@ -51,7 +51,7 @@ export class MoveDoc extends React.Component {
         <Form onSubmit={this.onFormSubmit}>
             
             <Form.Select size="sm" onChange={(e) => this.setState({selectedFolder: e.target.value})}>
-                <option value="">Select Folder</option>
+                <option value="">Select Project</option>
                 {this.props.folders.map((folder) => (
                     <option key={folder.id} value={folder.id}>{folder.name}</option>
                 ))}

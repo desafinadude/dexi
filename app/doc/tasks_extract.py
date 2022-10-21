@@ -47,12 +47,12 @@ ner = {
     "FAC": [], # FAC (buildings, airports etc.), 
     "PRODUCT": [], # PRODUCT (products),
     "EVENT": [], # EVENT (event names), 
-    "WORK_OF_ART": [], # WORK_OF_ART (books, song titles), 
     "LAW": [], # LAW (legal document titles), 
     "LANGUAGE": [], # LANGUAGE (named languages), 
     "DATE": [],
-    "MONEY": [],
-    "PERCENT": []
+    # "MONEY": [],
+    # "PERCENT": [],
+    # "WORK_OF_ART": [], # WORK_OF_ART (books, song titles), 
     # "TIME": [],
     # "QUANTITY": [],
     # "ORDINAL": [],
@@ -117,7 +117,13 @@ def extractEntities(file):
                 if cleanEnt(ent[0]) not in ner[key]:
                     # This excludes the included page numbers we've added for indexing purposes
                     if ('dexipage' not in cleanEnt(ent[0]) and '/tmp/' not in cleanEnt(ent[0])):
-                        ner[key].append(cleanEnt(ent[0]))
+
+                        # This gets rid of most rubbish entities
+                        invalidcharacters = set(string.punctuation)
+                        if any(char in invalidcharacters for char in cleanEnt(ent[0])):
+                            print ("invalid")
+                        else:
+                            ner[key].append(cleanEnt(ent[0]))
 
     return text
 

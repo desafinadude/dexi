@@ -57,37 +57,37 @@ export class Welcome extends React.Component {
 
         <section className="py-5">
             <Container className="text-center pt-4">
-                <h2 className="text-primary">DEXI LOVES DOCUMENTS</h2>
+                <h2 className="text-primary font-special-elite">DEXI LOVES DOCUMENTS</h2>
                 <p>Here are some features blah blah blah</p>
 
                 <Row className="py-5 text-start features-block justify-content-md-center">
-                    <Col md={3}>
-                        <Card className="mb-3 shadow-sm">
-                            <Card.Body>
-                                <h4 className="fs-5 text-primary">PDF TO TXT</h4>
-                                <p>Upload your documents and turn them into searchable text</p>
+                    <Col md={4}>
+                        <Card className="mb-3 shadow-sm border-0 p-3">
+                            <Card.Body className="text-center">
+                                <h4 className="fs-5 font-special-elite bg-secondary d-inline-block pt-1 px-2 text-white">PDF TO TXT</h4>
+                                <p>Upload your documents and turn them into searchable text.</p>
                             </Card.Body>
                         </Card>
-                        <Card className="shadow-sm">
-                            <Card.Body>
-                                <h4 className="fs-5 text-primary">EXTRACT</h4>
-                                <p>Extract named entities with advanced machine learning algorhythms</p>
+                        <Card className="shadow-sm border-0 p-3">
+                            <Card.Body className="text-center">
+                                <h4 className="fs-5 text-primary font-special-elite bg-secondary d-inline-block pt-1 px-2 text-white">EXTRACT</h4>
+                                <p>Extract named entities with natural language processing models.</p>
                             </Card.Body>
                         </Card>
 
                     </Col>
                     
-                    <Col md={3}>
-                        <Card className="mb-3 shadow-sm">
-                            <Card.Body>
-                                <h4 className="fs-5 text-primary">INDEXING</h4>
-                                <p>Get an overview of your documents with detailed index building</p>
+                    <Col md={4}>
+                        <Card className="mb-3 shadow-sm border-0 p-3">
+                            <Card.Body className="text-center">
+                                <h4 className="fs-5 text-primary font-special-elite bg-secondary d-inline-block pt-1 px-2 text-white">INDEXING</h4>
+                                <p>Get an overview of your documents with detailed index building.</p>
                             </Card.Body>
                         </Card>
-                        <Card className="shadow-sm">
-                            <Card.Body>
-                                <h4 className="fs-5 text-primary">COMPARING</h4>
-                                <p>Upload custom lists to use as reference when indexing</p>
+                        <Card className="shadow-sm border-0 p-3">
+                            <Card.Body className="text-center">
+                                <h4 className="fs-5 text-primary font-special-elite bg-secondary d-inline-block pt-1 px-2 text-white">COMPARING</h4>
+                                <p>Upload custom lists to use as reference when indexing.</p>
                             </Card.Body>
                         </Card>
                     </Col>

@@ -12,7 +12,7 @@ export class UploadReference extends React.Component {
     render() {
 
         return (
-            'Reference Form Here!'
+            'Coming Soon'
         )
     }
 

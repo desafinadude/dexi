@@ -30,10 +30,12 @@ export class Login extends React.Component {
 
         e.preventDefault();
 
-        let newFormData = new FormData();
+        const formData = new FormData(e.target), formDataObj = Object.fromEntries(formData.entries());
+        
+        var newFormData = new FormData();
 
-        newFormData.append("username", 'admin');
-        newFormData.append("password", 'admin');
+        newFormData.append("username", formDataObj.username);
+        newFormData.append("password", formDataObj.password);
 
         axios.post(process.env.API + '/login/', newFormData)
         .then((response) => {
