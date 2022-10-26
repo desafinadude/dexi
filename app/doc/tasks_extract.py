@@ -46,10 +46,10 @@ ner = {
     "LOC": [], # LOC (mountain ranges, water bodies etc.),
     "FAC": [], # FAC (buildings, airports etc.), 
     "PRODUCT": [], # PRODUCT (products),
-    "EVENT": [], # EVENT (event names), 
+    # "EVENT": [], # EVENT (event names), 
     "LAW": [], # LAW (legal document titles), 
-    "LANGUAGE": [], # LANGUAGE (named languages), 
-    "DATE": [],
+    # "LANGUAGE": [], # LANGUAGE (named languages), 
+    # "DATE": [],
     # "MONEY": [],
     # "PERCENT": [],
     # "WORK_OF_ART": [], # WORK_OF_ART (books, song titles), 
@@ -57,6 +57,9 @@ ner = {
     # "QUANTITY": [],
     # "ORDINAL": [],
     # "CARDINAL": []
+    "EMAIL": [],
+    # "IBAN": [],
+    # "WEB": []
 }
 
 ner_index = []
@@ -92,10 +95,6 @@ def doc_extract(doc_id):
         else:
             print("Can't Find That File")
 
-
-def cleanEnt(ent):
-    return ent.replace('\n','').replace(':','')
-
 def indexEnt(pos, text):
 
     text_before = text[:pos]
@@ -108,22 +107,61 @@ def extractEntities(file):
     with open(file, 'r') as f:
         text = f.read()
 
+    # Find email addresses
+    emails = re.findall(r'[\w\.-]+@[\w\.-]+', text)
+    for email in emails:
+        ner['EMAIL'].append(email)
+
+    # Find IBAN
+    # ibans = re.findall(r'([A-Z]{2}[0-9]{2}[A-Z0-9]{4}[0-9]{7}([A-Z0-9]?){0,16})', text)
+    # for iban in ibans:
+    #     ner['IBAN'].append(iban[0])
+
+    # Find websites that may start without http
+    # websites = re.findall(r'(?<!\w)(?:https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?', text)
+    # for website in websites:
+    #     ner['WEB'].append(website[0])
+    
+
     doc = nlp(text)
 
     for ent in [(X.text, X.label_) for X in doc.ents]:
         
         for key in ner:
-            if key in ent:
-                if cleanEnt(ent[0]) not in ner[key]:
-                    # This excludes the included page numbers we've added for indexing purposes
-                    if ('dexipage' not in cleanEnt(ent[0]) and '/tmp/' not in cleanEnt(ent[0])):
+            if key != 'EMAIL':
 
-                        # This gets rid of most rubbish entities
-                        invalidcharacters = set(string.punctuation)
-                        if any(char in invalidcharacters for char in cleanEnt(ent[0])):
-                            print ("invalid")
-                        else:
-                            ner[key].append(cleanEnt(ent[0]))
+                if key in ent:
+                    if ent[0] not in ner[key]:
+                        # This excludes the included page numbers we've added for indexing purposes
+                        if ('dexipage' not in ent[0] and '/tmp/' not in ent[0]):
+
+                            # No one letter entities please
+                            if (len(ent[0]) > 1):
+
+                                # This gets rid of most rubbish entities but is very crude and skips some good ones like emails
+                                # !"#$%&'()*+, -./:;<=>?@[\]^_`{|}~
+
+                                ent[0].replace('\n','')
+
+                                invalidcharacters = set(string.punctuation.replace("_", "")
+                                .replace("-", "")
+                                .replace(".", "")
+                                .replace(" ", "")
+                                .replace("/", "")
+                                .replace(":", "")
+                                .replace("(", "")
+                                .replace(")", "")
+                                .replace(",", "")
+                                .replace("'", ""))
+                                
+                                
+                                invalidcharacters = set(string.punctuation)
+
+
+                                if any(char in invalidcharacters for char in ent[0]):
+                                    print ("invalid")
+                                else:
+                                    ner[key].append(ent[0])
 
     return text
 

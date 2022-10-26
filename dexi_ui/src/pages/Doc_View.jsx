@@ -224,7 +224,7 @@ export class DocView extends React.Component {
                         <Tab eventKey="text" title="Text and Entities" className="bg-white">
                             <Row>
                                 <Col md={6} className="p-5" style={{fontFamily: 'Courier'}}>
-                                    <pre>{this.state.text}</pre>
+                                    {parse(this.state.text)}
                                     {/* {parse(this.state.text)} */}
                                 </Col>
                                 <Col md={6} className="side-panel">
