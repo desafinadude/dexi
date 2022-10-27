@@ -13,7 +13,7 @@ export class MoveDoc extends React.Component {
     constructor(props){
         super(props);
         this.state = {
-            selectedFolder: null
+            selectedProject: null
         }
     }
 
@@ -26,7 +26,7 @@ export class MoveDoc extends React.Component {
         
         var newFormData = new FormData();
 
-        newFormData.append("folder", this.state.selectedFolder);
+        newFormData.append("project", this.state.selectedProject);
         newFormData.append("docs", this.props.docs.map(doc => doc.id).join(','));
         newFormData.append("action", "move");
 
@@ -50,10 +50,10 @@ export class MoveDoc extends React.Component {
         
         <Form onSubmit={this.onFormSubmit}>
             
-            <Form.Select size="sm" onChange={(e) => this.setState({selectedFolder: e.target.value})}>
+            <Form.Select size="sm" onChange={(e) => this.setState({selectedProject: e.target.value})}>
                 <option value="">Select Project</option>
-                {this.props.folders.map((folder) => (
-                    <option key={folder.id} value={folder.id}>{folder.name}</option>
+                {this.props.projects.map((project) => (
+                    <option key={project.id} value={project.id}>{project.name}</option>
                 ))}
             </Form.Select>
         

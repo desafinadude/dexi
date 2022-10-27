@@ -41,7 +41,7 @@ def doc_ocr(doc_id):
 
     doc = Doc.objects.get(pk=doc_id)
 
-    if doc.status.id == 1:
+    if doc.status == 1:
 
         # TODO: Why not write these to a file's log? That could be a useful feature.
 

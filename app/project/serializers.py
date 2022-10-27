@@ -1,12 +1,12 @@
 from rest_framework import serializers
-from .models import Folder
+from .models import Project
 from .models import Permission
-class FolderSerializer(serializers.ModelSerializer):
+class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Folder
+        model = Project
         fields = "__all__"
 
-class FolderPermissionSerializer(serializers.ModelSerializer):
+class ProjectPermissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Permission
         fields = "__all__"

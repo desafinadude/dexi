@@ -34,6 +34,10 @@ from doc.serializers import DocSerializer
 from entity.models import Entity
 from entity.serializers import EntitySerializer
 
+from entity.models import Extraction
+
+from entity.models import EntityFound
+
 s3 = boto3.client('s3', aws_access_key_id=settings.AWS_ACCESS_KEY_ID , aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
 
 text = ''
@@ -69,11 +73,12 @@ ner_index = []
 offset = 112 
 
 @shared_task
-def doc_extract(doc_id):
+def doc_extract(doc_id, extraction_id):
 
     doc = Doc.objects.get(pk=doc_id)
+    extraction = Extraction.objects.get(pk=extraction_id)
 
-    if doc.status.id == 3:
+    if doc.status == 3:
 
         result = s3.list_objects_v2(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Prefix=str(doc.file) + '.txt')
         
@@ -82,14 +87,14 @@ def doc_extract(doc_id):
             s3.download_file(settings.AWS_STORAGE_BUCKET_NAME, str(doc.file) + '.txt', str(doc.file) + '.txt')
             text = extractEntities(str(doc.file) + '.txt')
 
-            doc.status_id = 4
+            doc.status = 4
             doc.save()
 
             # build index
             for key in ner:
-                buildIndex(key, doc, text)
+                buildIndex(key, doc, text, extraction)
 
-            doc.status_id = 5
+            doc.status = 5
             doc.save()
 
         else:
@@ -165,22 +170,38 @@ def extractEntities(file):
 
     return text
 
-def buildIndex(key, doc, text):
+def buildIndex(key, doc, text, extraction):
     
     print(key, doc, text)
 
     for ent in ner[key]:
-        page_numbers = []
-        res = [i for i in range(len(text)) if text.startswith(ent, i)]
 
-        for pos in res:
-            page = indexEnt(pos, text)
-            
+        # If entity with same name and same doc does not exist, create
+        
+        entity = Entity.objects.filter(entity=ent, doc=doc, extraction=extraction)
+
+        if not entity:
             Entity.objects.create(
                 entity=ent,
                 schema=key,
                 doc=doc,
-                page=page,
-                pos=pos-offset,
+                extraction=extraction,
                 reference=None
             )
+            
+
+        # Add every occurence of entity to EntityFound
+        res = [i for i in range(len(text)) if text.startswith(ent, i)]
+
+        entity = Entity.objects.filter(entity=ent, doc=doc, extraction=extraction).first()
+
+        print(entity)
+
+        for pos in res:
+            page = indexEnt(pos, text)
+            if entity:
+                EntityFound.objects.create(
+                    entity=entity,
+                    page=page,
+                    pos=pos
+                )     

@@ -10,7 +10,9 @@ from django.shortcuts import redirect
 from django.db.models.functions import Lower
 from django.core.paginator import Paginator
 from .models import Entity
+from .models import Extraction
 from .serializers import EntitySerializer
+from .serializers import ExtractionSerializer
 
 
 class EntityListApiView(APIView):
@@ -24,8 +26,8 @@ class EntityListApiView(APIView):
         if(kwargs.get('doc_id')):
             entities = Entity.objects.filter(doc_id=kwargs.get('doc_id')).order_by(Lower('entity'))
 
-        elif(kwargs.get('folder_id')):
-            entities = Entity.objects.filter(doc__folder_id=kwargs.get('folder_id')).order_by(Lower('entity'))
+        elif(kwargs.get('project_id')):
+            entities = Entity.objects.filter(doc__project_id=kwargs.get('project_id')).order_by(Lower('entity'))
         
         else:
             entities = Entity.objects.select_related('doc').order_by(Lower('entity'))
@@ -39,4 +41,22 @@ class EntityListApiView(APIView):
 
     def post(self, request, *args, **kwargs):
 
-        return
+        if request.data.get('action') == 'new':
+        
+            data = {
+                'name': request.data.get('name'),
+                'description': request.data.get('description'),
+                'user': request.user.id
+            }
+
+            serializer = ExtractionSerializer(data=data)
+            
+            if serializer.is_valid():
+                extraction = serializer.save()
+
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        else:
+
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+

@@ -36,7 +36,7 @@ export class Upload extends React.Component {
 
         const formData = new FormData(e.target), formDataObj = Object.fromEntries(formData.entries());
 
-        if(formDataObj.folder == 'undefined'){
+        if(formDataObj.project == 'undefined'){
 
             alert('Please select a project to upload to.');
         
@@ -52,7 +52,7 @@ export class Upload extends React.Component {
                     newFormData.append("file", file);
                 });
                 
-                newFormData.append("folder", formDataObj.folder ? formDataObj.folder : 1);
+                newFormData.append("project", formDataObj.project ? formDataObj.project : 1);
                 newFormData.append("action", "upload");
 
                 axios.post(process.env.API + '/doc/api/', newFormData,{ headers: {
@@ -87,12 +87,12 @@ export class Upload extends React.Component {
                 (
                     <>
                     {  
-                        this.props.folders.length > 0 ?
+                        this.props.projects.length > 0 ?
                         <Form onSubmit={this.onFormSubmit}>
-                            <Form.Select size="sm" name="folder">
+                            <Form.Select size="sm" name="project">
                             <option value="undefined">Upload to Project</option>
                                 <>
-                                    { this.props.folders.map((folder) => <option key={folder.id} value={folder.id}>{folder.name}</option>)}
+                                    { this.props.projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
                                 </>
                             </Form.Select>
                             <Form.Control className="mt-4" size="sm" name="file" type="file" multiple onChange={(e) => this.showFiles(e) } accept="application/pdf" />

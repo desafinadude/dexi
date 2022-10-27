@@ -8,7 +8,7 @@ import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 
 
-export class Folder extends React.Component {
+export class Project extends React.Component {
 
     
     onFormSubmit = (e) => {
@@ -20,15 +20,16 @@ export class Folder extends React.Component {
         var newFormData = new FormData();
 
         newFormData.append("name", formDataObj.name);
+        newFormData.append("description", formDataObj.description);
         newFormData.append("action", "new");
 
-        axios.post(process.env.API + '/folder/api', newFormData,{ headers: {
+        axios.post(process.env.API + '/project/api', newFormData,{ headers: {
             "Authorization": "token " + getCookie('dexitoken')
             }
         })
         .then((response) => {
             this.props.onHide();
-            this.props.onGetFolders();
+            this.props.onGetProjects();
         })
         .catch((error) => {
             console.log(error);
@@ -43,10 +44,10 @@ export class Folder extends React.Component {
         
 
         <Form onSubmit={this.onFormSubmit}>
-            
-            {this.props.selectedFolder}
+        
 
             <Form.Control name="name" type="text" size="sm" placeholder="Project Name" />
+            <Form.Control name="description" as="textarea" rows={3} placeholder="Project Description" className="mt-2"/>
         
             <Button className="mt-4" variant="primary" size="sm" type="submit">Submit</Button>
                 

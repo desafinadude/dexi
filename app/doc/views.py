@@ -23,8 +23,8 @@ class DocListApiView(APIView):
     authentication_classes = [authentication.TokenAuthentication]
 
     def get(self, request, *args, **kwargs):
-        if(kwargs.get('folder_id')):
-            docs = Doc.objects.filter(folder_id=kwargs.get('folder_id'), user_id=request.user.id).order_by('id')
+        if(kwargs.get('project_id')):
+            docs = Doc.objects.filter(project_id=kwargs.get('project_id'), user_id=request.user.id).order_by('id')
         else:
             docs = Doc.objects.filter(user_id = request.user.id).order_by('id')
         serializer = DocSerializer(docs, many=True)
@@ -42,7 +42,7 @@ class DocListApiView(APIView):
                     'file': file,
                     'name': file.name,
                     'type': file.content_type if file.content_type else None,
-                    'folder': request.data.get('folder'), 
+                    'project': request.data.get('project'), 
                     'status': 1, 
                     'user': request.user.id
                 })
@@ -58,7 +58,7 @@ class DocListApiView(APIView):
         elif request.data.get('action') == 'convert':
 
             # Convert
-            field_name_list = ['id','name','file','type','folder','status','user']
+            field_name_list = ['id','name','file','type','project','status','user']
 
             selected_docs = request.data.getlist('docs')
             docs = Doc.objects.filter(id__in=selected_docs[0].split(','))
@@ -71,37 +71,40 @@ class DocListApiView(APIView):
 
         
         elif request.data.get('action') == 'extract':
+
+            
             
             # Extract
-            field_name_list = ['id','name','file','type','folder','status','user']
+            field_name_list = ['id','name','file','type','project','status','user']
 
             selected_docs = request.data.getlist('docs')
+            extraction_id = request.data.get('extraction_id')
             docs = Doc.objects.filter(id__in=selected_docs[0].split(','))
             docs = docs.values(*field_name_list)
 
             for doc in docs:
-                extract = doc_extract(doc['id'])
+                extract = doc_extract(doc['id'],extraction_id)
     
             return Response('Extraction Done - Maybe', status=status.HTTP_200_OK)
 
         elif request.data.get('action') == 'move':
                 
                 # Move
-                field_name_list = ['id','name','file','type','folder','status','user']
+                field_name_list = ['id','name','file','type','project','status','user']
     
                 selected_docs = request.data.getlist('docs')
                 docs = Doc.objects.filter(id__in=selected_docs[0].split(','))
                 docs = docs.values(*field_name_list)
     
                 for doc in docs:
-                    Doc.objects.filter(id=doc['id']).update(folder=request.data.get('folder'))
+                    Doc.objects.filter(id=doc['id']).update(project=request.data.get('project'))
     
                 return Response('Moved', status=status.HTTP_200_OK)
 
         elif request.data.get('action') == 'delete':
                 
                 # Delete
-                field_name_list = ['id','name','file','type','folder','status','user']
+                field_name_list = ['id','name','file','type','project','status','user']
     
                 selected_docs = request.data.getlist('docs')
                 docs = Doc.objects.filter(id__in=selected_docs[0].split(','))

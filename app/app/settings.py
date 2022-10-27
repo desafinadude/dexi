@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'core',
     'doc',
-    'folder',
+    'project',
     'entity',
     'reference',
 ]

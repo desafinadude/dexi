@@ -55,18 +55,18 @@ export class EntityList extends React.Component {
                     sortable: true
                 },
                 {
-                    name: 'Folders',
-                    selector: row => row.folders.length,
+                    name: 'Projects',
+                    selector: row => row.projects.length,
                     maxWidth: '100px',
                     center: true,
                     sortable: true
                 }
 
             ],
-            folders: [],
+            projects: [],
             entities: [],
             selectedRows: [],
-            selectedFolder: undefined
+            selectedProject: undefined
         }
         
     }
@@ -82,7 +82,7 @@ export class EntityList extends React.Component {
             window.location.href='/';
         }
 
-        self.getFolders();
+        self.getProjects();
         self.getEntities();
         
 
@@ -90,14 +90,14 @@ export class EntityList extends React.Component {
     }
 
 
-    getFolders = () => {
+    getProjects = () => {
         let self = this;
 
-        axios.get(process.env.API + '/folder/api', { headers: {
+        axios.get(process.env.API + '/project/api', { headers: {
             "Authorization": "token " + getCookie('dexitoken')
             }})
             .then((response) => {
-                self.setState({ folders: response.data })
+                self.setState({ projects: response.data })
             })
             .catch((error) => {
                 console.log(error);
@@ -108,7 +108,7 @@ export class EntityList extends React.Component {
 
         let self = this;
 
-        let url = self.state.selectedFolder ? process.env.API + '/entity/api/folder/' + self.state.selectedFolder.id : process.env.API + '/entity/api';
+        let url = self.state.selectedProject ? process.env.API + '/entity/api/project/' + self.state.selectedProject.id : process.env.API + '/entity/api';
 
         axios.get(url, { headers: {
             "Authorization": "token " + getCookie('dexitoken')
@@ -128,7 +128,7 @@ export class EntityList extends React.Component {
                             entity: entity.entity,
                             schema: entity.schema,
                             count: 1,
-                            folders: [],
+                            projects: [],
                             found: [{
                                 doc: entity.doc,
                                 page: [entity.page]
@@ -152,9 +152,9 @@ export class EntityList extends React.Component {
 
                     }
 
-                    // FOLDERS
-                    if(entities.find(e => e.entity === entity.entity).folders.find(f => f.id === entity.doc.folder.id) == undefined) {
-                        entities.find(e => e.entity === entity.entity).folders.push(entity.doc.folder)
+                    // Project
+                    if(entities.find(e => e.entity === entity.entity).projects.find(f => f.id === entity.doc.project.id) == undefined) {
+                        entities.find(e => e.entity === entity.entity).projects.push(entity.doc.project)
                     }
 
                         
@@ -180,9 +180,9 @@ export class EntityList extends React.Component {
 
     }
 
-    selectFolder = (e) => {
+    selectProject = (e) => {
         let self = this;
-        e.target.value == 'all' ? self.setState({selectedFolder: undefined}) : self.setState({selectedFolder: self.state.folders.find((folder) => folder.id == e.target.value)},
+        e.target.value == 'all' ? self.setState({selectedProject: undefined}) : self.setState({selectedProject: self.state.projects.find((project) => project.id == e.target.value)},
         () => {
             self.getEntities();
         });
@@ -203,17 +203,17 @@ export class EntityList extends React.Component {
                 
                     <Row className="mb-2">
                         <Col>
-                            <h4 className="fw-normal">{this.state.selectedFolder ? this.state.selectedFolder.name : 'All Entities'}</h4>
+                            <h4 className="fw-normal">{this.state.selectedProject ? this.state.selectedProject.name : 'All Entities'}</h4>
                         </Col>
                         <Col md="auto">
                             <DropdownButton variant="primary" title="DO SOMETHING" size="sm" className="d-inline-block mx-1">
                                 <Dropdown.Item onClick={() => this.entityAction('export')}>Export Entities</Dropdown.Item>
                                 <Dropdown.Item onClick={() => this.entityAction('delete')}>Delete Entity</Dropdown.Item>
                             </DropdownButton>
-                            <Form.Select size="sm" onChange={(e) => this.selectFolder(e)} className="animate__animated animate__fadeIn d-inline-block w-auto me-1 h-100">
+                            <Form.Select size="sm" onChange={(e) => this.selectProject(e)} className="animate__animated animate__fadeIn d-inline-block w-auto me-1 h-100">
                                 <option value="">All Projects</option>
-                                {this.state.folders.map((folder) => (
-                                    <option key={folder.id} value={folder.id}>{folder.name}</option>
+                                {this.state.projects.map((project) => (
+                                    <option key={project.id} value={project.id}>{project.name}</option>
                                 ))}
                             </Form.Select>
                         </Col>
@@ -255,7 +255,7 @@ const EntityDetails = ({ data }) => {
             return (
                 <ListGroup.Item as="li" key={f.doc.id}>
                     <div className="ms-5 me-auto">
-                        <div className="fw-bold"><a className="text-decoration-none" href={'/doc/' + f.doc.id}>{f.doc.name}</a> <Badge bg="info">{f.doc.folder.name}</Badge>
+                        <div className="fw-bold"><a className="text-decoration-none" href={'/doc/' + f.doc.id}>{f.doc.name}</a> <Badge bg="info">{f.doc.project.name}</Badge>
                         <>
                         {
                             f.page.reverse().map((p) => {

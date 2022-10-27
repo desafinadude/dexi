@@ -6,6 +6,6 @@ from .views import (
 
 urlpatterns = [
     path('api', EntityListApiView.as_view()),
-    path('api/folder/<int:folder_id>/', EntityListApiView.as_view()),
+    path('api/project/<int:project_id>/', EntityListApiView.as_view()),
     path('api/doc/<int:doc_id>/', EntityListApiView.as_view()),
 ]

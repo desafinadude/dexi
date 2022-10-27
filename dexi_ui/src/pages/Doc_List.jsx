@@ -5,7 +5,8 @@ import dayjs from 'dayjs';
 
 import DataTable, { defaultThemes } from 'react-data-table-component';
 import { Upload } from '../components/Upload';
-import { Folder } from '../components/Folder';
+import { Project } from '../components/Project';
+import { Extract } from '../components/Extract';
 import { MoveDoc } from '../components/MoveDoc';
 import { UploadReference } from '../components/UploadReference';
 import { DexiAlert } from '../components/DexiAlert';
@@ -61,7 +62,7 @@ export class DocList extends React.Component {
                 },
                 {
                     name: 'Project',
-                    selector: row => <Badge bg="info">{this.state.folders.find(folder => folder.id == row.folder).name}</Badge>,
+                    selector: row => <Badge bg="info">{this.state.projects && this.state.projects.find(project => project.id == row.project).name}</Badge>,
                     maxWidth: '150px'
                 },
                 {
@@ -106,12 +107,13 @@ export class DocList extends React.Component {
 
             ],
             docs: [],
-            folders: [],
-            selectedFolder: undefined,
+            projects: [],
+            selectedProject: undefined,
             selectedRows: [],
             showModal: false,
             showUpload: false,
-            showFolder: false,
+            showProject: false,
+            showExtract: false,
             showMoveDoc: false,
             showReferenceUpload: false,
             alert: {
@@ -135,7 +137,7 @@ export class DocList extends React.Component {
             window.location.href='/';
         }
 
-        self.getFolders();
+        self.getProjects();
         self.getDocs();    
 
         // GetDocs every 5 seconds
@@ -147,13 +149,13 @@ export class DocList extends React.Component {
         
     }
 
-    getFolders = () => {
+    getProjects = () => {
         let self = this;
-        axios.get(process.env.API + '/folder/api', { headers: {
+        axios.get(process.env.API + '/project/api', { headers: {
             "Authorization": "token " + getCookie('dexitoken')
             }})
             .then((response) => {
-                self.setState({ folders: response.data })
+                self.setState({ projects: response.data })
             })
             .catch((error) => {
                 console.log(error);
@@ -165,7 +167,7 @@ export class DocList extends React.Component {
 
         let self = this;
 
-        let url = self.state.selectedFolder ? process.env.API + '/doc/api/folder/' + self.state.selectedFolder.id : process.env.API + '/doc/api';
+        let url = self.state.selectedProject ? process.env.API + '/doc/api/project/' + self.state.selectedProject.id : process.env.API + '/doc/api';
 
         axios.get(url, 
             { 
@@ -219,38 +221,8 @@ export class DocList extends React.Component {
             }
             if(action == 'extract') {
 
-                if(self.state.selectedRows.filter(doc => doc.status >= 4).length > 0) {
-                    self.setState({alert: {show: true, variant: 'danger', message: 'Some documents are already extracted'}});
-                } else if(self.state.selectedRows.filter(doc => doc.status <= 2).length > 0) {
-                    self.setState({alert: {show: true, variant: 'danger', message: 'Some documents have not been converted to text'}});
-                }  else {
-
-                    // EXTRACT
-
-                    let alert = {
-                        show: true,
-                        variant: 'success',
-                        message: 'Extracting Entities'
-                    }
-
-                    self.setState({alert: alert});
-
-                    var newFormData = new FormData();
-
-                    newFormData.append("docs", self.state.selectedRows.map(doc => doc.id).join(','));
-                    newFormData.append("action", "extract");
+                self.showModal('extract');
                 
-                    axios.post(process.env.API + '/doc/api/', newFormData, { headers: {
-                        "Authorization": "token " + getCookie('dexitoken')
-                        }})
-                        .then((response) => {
-                            console.log(response)
-                        })
-                        .catch((error) => {
-                            console.log(error);
-                        })
-
-                }
             }
 
             if(action == 'move') {
@@ -294,9 +266,9 @@ export class DocList extends React.Component {
         console.log(e);
     }
 
-    selectFolder = (e) => {
+    selectProject = (e) => {
         let self = this;
-        e.target.value == 'all' ? self.setState({selectedFolder: undefined}) : self.setState({selectedFolder: self.state.folders.find((folder) => folder.id == e.target.value)});
+        e.target.value == 'all' ? self.setState({selectedProject: undefined}) : self.setState({selectedProject: self.state.projects.find((project) => project.id == e.target.value)});
         self.getDocs();
     }
     
@@ -305,7 +277,8 @@ export class DocList extends React.Component {
             {   
                 showModal: true, 
                 showUpload: form == 'upload' ? true : false, 
-                showFolder: form == 'folder' ? true : false,
+                showProject: form == 'project' ? true : false,
+                showExtract: form == 'extract' ? true : false,
                 showMoveDoc: form == 'move' ? true : false,
                 showReferenceUpload: form == 'reference' ? true : false
             }
@@ -323,12 +296,12 @@ export class DocList extends React.Component {
 
                 <Row className="mb-2">
                     <Col>
-                        <h4 className="fw-normal">{this.state.selectedFolder ? this.state.selectedFolder.name : 'All Documents'}</h4>
+                        <h4 className="fw-normal" title={this.state.selectedProject && this.state.selectedProject.description ? this.state.selectedProject.description : ''}>{this.state.selectedProject ? this.state.selectedProject.name : 'All Documents'}</h4>
                     </Col>
                     <Col md="auto">
                         <DropdownButton variant="primary" title="NEW" size="sm" className="d-inline-block">
                             <Dropdown.Item onClick={() => this.showModal('upload')}>Document</Dropdown.Item>
-                            <Dropdown.Item onClick={() => this.showModal('folder')}>Project</Dropdown.Item>
+                            <Dropdown.Item onClick={() => this.showModal('project')}>Project</Dropdown.Item>
                             <Dropdown.Item onClick={() => this.showModal('reference')}>Reference</Dropdown.Item>
                         </DropdownButton>
                         
@@ -339,10 +312,10 @@ export class DocList extends React.Component {
                             <Dropdown.Item onClick={() => this.docAction('delete')}>Delete File</Dropdown.Item>
                         </DropdownButton>
 
-                        <Form.Select size="sm" onChange={(e) => this.selectFolder(e)} className="animate__animated animate__fadeIn d-inline-block w-auto me-1 h-100">
+                        <Form.Select size="sm" onChange={(e) => this.selectProject(e)} className="animate__animated animate__fadeIn d-inline-block w-auto me-1 h-100">
                             <option value="">All Projects</option>
-                            {this.state.folders.map((folder) => (
-                                <option key={folder.id} value={folder.id}>{folder.name}</option>
+                            {this.state.projects.map((project) => (
+                                <option key={project.id} value={project.id}>{project.name}</option>
                             ))}
                         </Form.Select>
                         
@@ -365,12 +338,13 @@ export class DocList extends React.Component {
                
                <Modal centered show={this.state.showModal} onHide={() => this.setState({showModal: false})}>
                     <Modal.Header closeButton>
-                        <Modal.Title>{this.state.showUpload ? 'Upload Documents' : this.state.showFolder ? 'Create Project' : this.state.showMoveDoc ? 'Move Document' : 'Upload Reference'}</Modal.Title>
+                        <Modal.Title>{this.state.showUpload ? 'Upload Documents' : this.state.showProject ? 'Create Project' : this.state.showExtract ? 'Start Extraction' : this.state.showMoveDoc ? 'Move Document' : 'Upload Reference'}</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
-                        { this.state.showUpload && <Upload folders={this.state.folders} onHide={() => this.setState({showModal: false})} /> }
-                        { this.state.showFolder && <Folder onHide={() => this.setState({showModal: false})} onGetFolders={() => this.getFolders()} selectedFolder={this.state.selectedFolder}/> }
-                        { this.state.showMoveDoc && <MoveDoc folders={this.state.folders} docs={this.state.selectedRows} onHide={() => this.setState({showModal: false})} /> }
+                        { this.state.showUpload && <Upload projects={this.state.projects} onHide={() => this.setState({showModal: false})} /> }
+                        { this.state.showProject && <Project onHide={() => this.setState({showModal: false})} onGetProjects={() => this.getProjects()} selectedProject={this.state.selectedProject}/> }
+                        { this.state.showMoveDoc && <MoveDoc projects={this.state.projects} docs={this.state.selectedRows} onHide={() => this.setState({showModal: false})} /> }
+                        { this.state.showExtract && <Extract docs={this.state.selectedRows} onHide={() => this.setState({showModal: false})} /> }
                         { this.state.showReferenceUpload && <UploadReference /> }
                     </Modal.Body>
                     
