@@ -28,15 +28,9 @@ import en_core_web_lg
 nlp = en_core_web_lg.load()
 
 
-from doc.models import Doc
-from doc.serializers import DocSerializer
+from .models import Doc, Entity, EntityFound, Extraction
+from .serializers import DocSerializer, EntitySerializer, ExtractionSerializer
 
-from entity.models import Entity
-from entity.serializers import EntitySerializer
-
-from entity.models import Extraction
-
-from entity.models import EntityFound
 
 s3 = boto3.client('s3', aws_access_key_id=settings.AWS_ACCESS_KEY_ID , aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
 
@@ -85,17 +79,45 @@ def doc_extract(doc_id, extraction_id):
         if 'Contents' in result:
             # download file and extract entities
             s3.download_file(settings.AWS_STORAGE_BUCKET_NAME, str(doc.file) + '.txt', str(doc.file) + '.txt')
+
+            global ner
+            ner = {
+                "ORG": [],
+                "PERSON": [], # ORG (organizations), 
+                "GPE": [], # GPE (countries, cities etc.), 
+                "NORP": [], # NORP (nationalities, religious and political groups), 
+                "LOC": [], # LOC (mountain ranges, water bodies etc.),
+                "FAC": [], # FAC (buildings, airports etc.), 
+                "PRODUCT": [], # PRODUCT (products),
+                # "EVENT": [], # EVENT (event names), 
+                "LAW": [], # LAW (legal document titles), 
+                # "LANGUAGE": [], # LANGUAGE (named languages), 
+                # "DATE": [],
+                # "MONEY": [],
+                # "PERCENT": [],
+                # "WORK_OF_ART": [], # WORK_OF_ART (books, song titles), 
+                # "TIME": [],
+                # "QUANTITY": [],
+                # "ORDINAL": [],
+                # "CARDINAL": []
+                "EMAIL": [],
+                # "IBAN": [],
+                # "WEB": []
+            }
+
             text = extractEntities(str(doc.file) + '.txt')
 
-            doc.status = 4
-            doc.save()
+            
+
+            # doc.status = 4
+            # doc.save()
 
             # build index
             for key in ner:
                 buildIndex(key, doc, text, extraction)
 
-            doc.status = 5
-            doc.save()
+            # doc.status = 5
+            # doc.save()
 
         else:
             print("Can't Find That File")
@@ -126,7 +148,12 @@ def extractEntities(file):
     # websites = re.findall(r'(?<!\w)(?:https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?', text)
     # for website in websites:
     #     ner['WEB'].append(website[0])
+
     
+    
+
+    # strip \n from plain text
+    text = text.replace('\n', ' ')
 
     doc = nlp(text)
 
@@ -136,7 +163,10 @@ def extractEntities(file):
             if key != 'EMAIL':
 
                 if key in ent:
-                    if ent[0] not in ner[key]:
+                    # if lowercase entity is not in the list
+                    if ent[0].lower() not in [x.lower() for x in ner[key]]:
+                    # if ent[0] not in ner[key]:
+
                         # This excludes the included page numbers we've added for indexing purposes
                         if ('dexipage' not in ent[0] and '/tmp/' not in ent[0]):
 
@@ -162,7 +192,6 @@ def extractEntities(file):
                                 
                                 invalidcharacters = set(string.punctuation)
 
-
                                 if any(char in invalidcharacters for char in ent[0]):
                                     print ("invalid")
                                 else:
@@ -171,37 +200,37 @@ def extractEntities(file):
     return text
 
 def buildIndex(key, doc, text, extraction):
-    
-    print(key, doc, text)
+
+    text = text.lower()
 
     for ent in ner[key]:
 
         # If entity with same name and same doc does not exist, create
-        
-        entity = Entity.objects.filter(entity=ent, doc=doc, extraction=extraction)
 
-        if not entity:
+        entity = Entity.objects.filter(entity=ent, extraction=extraction)
+
+        if entity.count() > 0:
+            print('Found....' + ent + '....' + str(entity[0].id))
+        else:
             Entity.objects.create(
                 entity=ent,
                 schema=key,
-                doc=doc,
-                extraction=extraction,
-                reference=None
+                extraction=extraction
             )
             
 
         # Add every occurence of entity to EntityFound
-        res = [i for i in range(len(text)) if text.startswith(ent, i)]
 
-        entity = Entity.objects.filter(entity=ent, doc=doc, extraction=extraction).first()
+        res = [i for i in range(len(text)) if text.startswith(ent.lower(), i)]
 
-        print(entity)
+        entity = Entity.objects.filter(entity=ent, extraction=extraction).first()
 
         for pos in res:
             page = indexEnt(pos, text)
             if entity:
                 EntityFound.objects.create(
                     entity=entity,
+                    doc=doc,
                     page=page,
                     pos=pos
                 )     

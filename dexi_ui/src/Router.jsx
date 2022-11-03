@@ -5,9 +5,9 @@ import { Route, Navigate, Routes } from 'react-router-dom';
 import { Welcome } from './pages/Welcome';
 import { Login } from './pages/Login';
 
-import { DocList } from './pages/Doc_List';
+import { ProjectList } from './pages/Project_List';
+import { ProjectView } from './pages/Project_View';
 import { DocView } from './pages/Doc_View';
-import { EntityList } from './pages/Entity_List';
 
 
 export class Router extends Component {
@@ -26,11 +26,9 @@ export class Router extends Component {
             <Route path="/" element={<Welcome />} />
             <Route path="/login" element={<Login />} />
 
-            <Route path="/doc" element={<DocList />} />
+            <Route path="/project" element={<ProjectList />} />
+            <Route path="/project/:projectId" element={<ProjectView />} />
             <Route path="/doc/:docId" element={<DocView />} />
-
-            <Route path="/entity" element={<EntityList />} />
-
         </Routes>
       )
     }

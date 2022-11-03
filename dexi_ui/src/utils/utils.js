@@ -29,3 +29,15 @@ export const logout = () => {
        document.cookie = "dexitoken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
        window.location.href = "/";
 }
+
+export const readSearchParams = () => {
+    let usp = new URLSearchParams(window.location.search);
+    let params = {};
+    usp.forEach((value, key) => {
+      if (!params[key]) {
+        params[key] = [];
+      }
+      params[key].push(value);
+    });
+    return params;
+  }

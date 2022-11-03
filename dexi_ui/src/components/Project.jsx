@@ -23,7 +23,7 @@ export class Project extends React.Component {
         newFormData.append("description", formDataObj.description);
         newFormData.append("action", "new");
 
-        axios.post(process.env.API + '/project/api', newFormData,{ headers: {
+        axios.post(process.env.API + '/dexi/project/', newFormData,{ headers: {
             "Authorization": "token " + getCookie('dexitoken')
             }
         })

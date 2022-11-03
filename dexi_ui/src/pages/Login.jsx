@@ -40,7 +40,7 @@ export class Login extends React.Component {
         axios.post(process.env.API + '/login/', newFormData)
         .then((response) => {
             document.cookie = "dexitoken=" + response.data.token;
-            window.location.href = "/doc";
+            window.location.href = "/project";
         })
 
     }
