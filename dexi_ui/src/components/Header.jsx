@@ -38,10 +38,10 @@ export class Header extends React.Component {
                         : 
                             <>
                                 <Nav.Item className="me-3">
-                                    <Nav.Link href="/doc">Docs</Nav.Link>
+                                    <Nav.Link href="/project">Projects</Nav.Link>
                                 </Nav.Item>
                                 <Nav.Item className="me-3">
-                                    <Nav.Link href="/entity">Entities</Nav.Link>
+                                    <Nav.Link href="/reference">References</Nav.Link>
                                 </Nav.Item>
                                 <NavDropdown title="User">
                                     <NavDropdown.Divider />

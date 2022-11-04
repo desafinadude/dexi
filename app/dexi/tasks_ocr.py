@@ -29,8 +29,8 @@ from django.conf import settings
 import glob
 from natsort import natsorted
 
-from doc.models import Doc
-from doc.serializers import DocSerializer
+from .models import Doc
+from .serializers import DocSerializer
 
 s3 = boto3.client('s3', aws_access_key_id=settings.AWS_ACCESS_KEY_ID , aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
 
@@ -41,7 +41,7 @@ def doc_ocr(doc_id):
 
     doc = Doc.objects.get(pk=doc_id)
 
-    if doc.status.id == 1:
+    if doc.status == 1:
 
         # TODO: Why not write these to a file's log? That could be a useful feature.
 

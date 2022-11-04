@@ -39,10 +39,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'core',
-    'doc',
-    'folder',
-    'entity',
-    'reference',
+    'dexi',
 ]
 
 MIDDLEWARE = [
