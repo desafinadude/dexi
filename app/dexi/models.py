@@ -82,9 +82,9 @@ class EntityFound(BaseModel):
 # REFERENCE
 
 class Reference(BaseModel):
-    uuid = models.UUIDField(null = True, editable=False)
-    name = models.CharField(max_length = 180)
-    file = models.FileField(null = True)
+    uuid = models.UUIDField(default = uuid.uuid4(), editable=False)
+    name = models.CharField(max_length = 180, null = True)
+    file = models.FileField(null = True, upload_to=get_file_path)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add = True)
 

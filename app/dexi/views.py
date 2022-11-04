@@ -14,10 +14,11 @@ from django.core.paginator import Paginator
 from django.db.models import Count, OuterRef, Subquery, Q
 
 from .models import Project, Doc, Extraction, Entity, EntityFound, Reference
-from .serializers import ProjectSerializer, ProjectPermissionSerializer, DocSerializer, ExtractionSerializer, EntitySerializer, EntityFoundSerializer
+from .serializers import ProjectSerializer, ProjectPermissionSerializer, DocSerializer, ExtractionSerializer, EntitySerializer, EntityFoundSerializer, ReferenceSerializer
 
 from .tasks_ocr import doc_ocr
-from .tasks_extract import doc_extract
+from .tasks_extract_nlp import doc_extract_nlp
+from .tasks_extract_reference import doc_extract_reference
         
 # DOCS
 
@@ -75,6 +76,7 @@ class DocListApiView(APIView):
                 'name': request.data.get('name'),
                 'description': request.data.get('description'),
                 'project': kwargs.get('project_id'),
+                'reference': request.data.get('extractor'),
                 'user': request.user.id
             }
 
@@ -97,7 +99,10 @@ class DocListApiView(APIView):
             docs = docs.values(*field_name_list)
 
             for doc in docs:
-                extract = doc_extract(doc['id'], extraction_id)
+                if(request.data.get('extractor') == 'nlp'):
+                    extract = doc_extract_nlp(doc['id'], extraction_id)
+                else:
+                    extract = doc_extract_reference(doc['id'], extraction_id)
     
             return Response('Extraction Done - Maybe', status=status.HTTP_200_OK)
 
@@ -295,3 +300,53 @@ class ProjectDetailApiView(APIView):
             )
         project_instance.delete()
         return Response({"res": "Project deleted!"}, status=status.HTTP_200_OK)
+
+
+
+#  References
+
+class ReferenceListApiView(APIView):
+    
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [authentication.TokenAuthentication]
+
+    
+    def get(self, request, *args, **kwargs):
+        
+        references = Reference.objects.filter(user_id = request.user.id)
+        serializer = ReferenceSerializer(references, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    
+    def post(self, request, *args, **kwargs):
+
+        if request.data.get('action') == 'upload':
+
+            files = request.data.getlist('file')
+            
+            for file in files:
+                serializer = ReferenceSerializer(data={ 
+                    'file': file,
+                    'name': file.name,
+                    'type': file.content_type if file.content_type else None,
+                    'user': request.user.id
+                })
+                if serializer.is_valid():
+                    serializer.save()
+                else:
+                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                    
+            return Response('Done', status=status.HTTP_201_CREATED)
+
+        elif request.data.get('action') == 'delete':
+                
+            # Delete
+
+            selected_references = request.data.getlist('references')
+            references = Reference.objects.filter(id__in=selected_references[0].split(','))
+            
+
+            for reference in references:
+                Reference.objects.filter(id=reference.id).delete()
+
+            return Response('Deleted', status=status.HTTP_200_OK)

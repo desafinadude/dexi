@@ -7,7 +7,8 @@ from .views import (
     ProjectDetailApiView,
     ExtractionListApiView,
     EntityListApiView,
-    EntityFoundListApiView
+    EntityFoundListApiView,
+    ReferenceListApiView
 )
 
 urlpatterns = [
@@ -21,4 +22,5 @@ urlpatterns = [
     path('doc/<int:doc_id>/entities', EntityFoundListApiView.as_view()),
     path('entity/<int:entity_id>', EntityFoundListApiView.as_view()),
     path('entity/delete', EntityListApiView.as_view()),
+    path('reference/', ReferenceListApiView.as_view()),
 ]

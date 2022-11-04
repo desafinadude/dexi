@@ -61,9 +61,9 @@ export class EntityPages extends React.Component {
                 <>
                 {
                     this.runCallback(() => {
-                    
+                        let listgroups = [];
                         for (const key in this.state.theDocs) {
-                            return <ListGroup.Item as="li" key={key}>
+                            listgroups.push(<ListGroup.Item as="li" key={key}>
                                 <div className="ms-5 me-auto">
                                     <div className="fw-bold"><a className="text-decoration-none" href={'/doc/' + this.state.theDocs[key][0].doc.id + '?project=' + this.props.project}>{this.state.theDocs[key][0].doc.name}</a>&nbsp;&nbsp;</div>
                                     <>
@@ -80,10 +80,11 @@ export class EntityPages extends React.Component {
                                     }
                                     </>
                                 </div>
-                            </ListGroup.Item>
+                            </ListGroup.Item>)
 
                                 
                         }
+                        return listgroups;
                     })
                 }
                 </>

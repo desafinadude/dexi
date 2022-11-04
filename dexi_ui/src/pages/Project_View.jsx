@@ -7,7 +7,6 @@ import DataTable, { defaultThemes } from 'react-data-table-component';
 import { Upload } from '../components/Upload';
 import { Project } from '../components/Project';
 import { Extract } from '../components/Extract';
-import { MoveDoc } from '../components/MoveDoc';
 import { DexiAlert } from '../components/DexiAlert';
 import { EntityPages } from '../components/EntityPages';
 
@@ -298,7 +297,7 @@ export class ProjectView extends React.Component {
                 newFormData.append("docs", self.state.selectedRows.map(doc => doc.id).join(','));
                 newFormData.append("action", "delete");
 
-                axios.post(process.env.API + '/doc/api/', newFormData, { headers: {
+                axios.post(process.env.API + '/dexi/project/'+ self.state.selectedProject.id + '/docs', newFormData, { headers: {
                     "Authorization": "token " + getCookie('dexitoken')
                     }})
                     .then((response) => {
@@ -443,7 +442,7 @@ export class ProjectView extends React.Component {
                         <Row className="justify-content-end py-3 px-2">
                             <Col>
                                 {this.state.selectedExtraction &&
-                                    <strong><Icon path={mdiPickaxe} size={0.8} /> {this.state.extractions.find(ex => ex.id == this.state.selectedExtraction).name}</strong>
+                                    <strong><Icon path={mdiPickaxe} size={0.8} /> <span onClick={() => this.extractionDetails()}>{this.state.extractions.find(ex => ex.id == this.state.selectedExtraction).name}</span></strong>
                                 }
                             </Col>
                             <Col md="auto">
@@ -476,6 +475,7 @@ export class ProjectView extends React.Component {
                             />
                         </div>
                     </Tab>
+                    
                 
                 </Tabs>
 
@@ -488,7 +488,6 @@ export class ProjectView extends React.Component {
                     <Modal.Body>
                         { this.state.showUpload && <Upload project={this.state.selectedProject} onHide={() => this.setState({showModal: false})} /> }
                         { this.state.showProject && <Project onHide={() => this.setState({showModal: false})} onGetProjects={() => this.getProjects()} selectedProject={this.state.selectedProject}/> }
-                        { this.state.showMoveDoc && <MoveDoc projects={this.state.projects} docs={this.state.selectedRows} onHide={() => this.setState({showModal: false})} /> }
                         { this.state.showExtract && <Extract docs={this.state.selectedRows} project={this.state.selectedProject} onHide={() => this.setState({showModal: false})} /> }
                     </Modal.Body>
                     

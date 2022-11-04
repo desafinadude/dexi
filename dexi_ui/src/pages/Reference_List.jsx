@@ -4,8 +4,9 @@ import { isTokenSet, getCookie } from '../utils/utils';
 import dayjs from 'dayjs';
 
 import DataTable, { defaultThemes } from 'react-data-table-component';
-import { Project } from '../components/Project';
 import { DexiAlert } from '../components/DexiAlert';
+import { UploadReference } from '../components/UploadReference';
+
 
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
@@ -22,11 +23,11 @@ import Alert from 'react-bootstrap/Alert';
 import Breadcrumb from 'react-bootstrap/Breadcrumb';
 
 import Icon from '@mdi/react';
-import { mdiBriefcase, mdiBriefcaseEdit, mdiBriefcasePlus, mdiBriefcaseRemove } from '@mdi/js';
+import { mdiFormatListBulletedType } from '@mdi/js';
 
 
 
-export class ProjectList extends React.Component {
+export class ReferenceList extends React.Component {
 
 
     constructor(){
@@ -39,25 +40,6 @@ export class ProjectList extends React.Component {
                     selector: row => row.name,
                     cell: row => <a className="fw-bold text-decoration-none" href={`project/${row.id}`}>{row.name}</a>,
                     sortable: true,
-                    
-                },
-                {
-                    name: 'Description',
-                    selector: row => row.description,
-                    cell: row => row.description,
-                    
-                },
-                {
-                    name: 'Documents',
-                    selector: row => row.doc_count,
-                    maxWidth: '120px',
-                    sortable: true,
-                },
-                {
-                    name: 'Extractions',
-                    selector: row => row.extraction_count,
-                    maxWidth: '120px',
-                    sortable: true,
                 },
                 {
                     name: 'Created',
@@ -67,13 +49,14 @@ export class ProjectList extends React.Component {
                     sortable: true,
                 }
             ],
-            projects: [],
+            references: [],
             showModal: false,
             alert: {
                 show: false,
                 variant: 'success',
                 message: ''
-            }
+            },
+            selectedRows: [],
         }
         
     }
@@ -89,17 +72,17 @@ export class ProjectList extends React.Component {
             window.location.href='/';
         }
 
-        self.getProjects();
+        self.getReferences();
         
     }
 
-    getProjects = () => {
+    getReferences = () => {
         let self = this;
-        axios.get(process.env.API + '/dexi/project/', { headers: {
+        axios.get(process.env.API + '/dexi/reference', { headers: {
                 "Authorization": "token " + getCookie('dexitoken')
             }})
             .then((response) => {
-                self.setState({ projects: response.data })
+                self.setState({ references: response.data })
             })
             .catch((error) => {
                 console.log(error);
@@ -115,9 +98,36 @@ export class ProjectList extends React.Component {
         this.setState(
             {   
                 showModal: true, 
-                showProject: form == 'project' ? true : false,
+                showProject: form == 'reference' ? true : false,
             }
         );
+    }
+
+    referenceAction(action) {
+        let self = this;
+        if(action == 'delete') {
+
+            self.setState({alert: {show: true, variant: 'success', message: 'Deleting'}});
+            
+            // DELETE
+
+            var newFormData = new FormData();
+
+            newFormData.append("references", self.state.selectedRows.map(reference => reference.id).join(','));
+            newFormData.append("action", "delete");
+
+            axios.post(process.env.API + '/dexi/reference/', newFormData, { headers: {
+                "Authorization": "token " + getCookie('dexitoken')
+                }})
+                .then((response) => {
+                    self.setState({selectedRows: []}, () => self.getReferences());
+                })
+                .catch((error) => {
+                    console.log(error);
+                })
+
+        }
+
     }
 
     render() {
@@ -131,35 +141,40 @@ export class ProjectList extends React.Component {
 
                 <Breadcrumb>
                     <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
-                    <Breadcrumb.Item active>Projects</Breadcrumb.Item>
+                    <Breadcrumb.Item active>References</Breadcrumb.Item>
                 </Breadcrumb>
                 
                 <Row className="mb-2">
                     <Col>
-                        <h4 className="fw-normal"><Icon path={mdiBriefcase} size={0.9} /> Projects</h4>
+                        <h4 className="fw-normal"><Icon path={mdiFormatListBulletedType} size={0.9} /> References</h4>
                     </Col>
                     <Col md="auto">
-                        <Button variant="primary" onClick={() => this.showModal('project')} size="sm"><Icon path={mdiBriefcasePlus} size={0.6} /> New Project</Button>
+                        <Button variant="primary" onClick={() => this.showModal('project')} size="sm"><Icon path={mdiFormatListBulletedType} size={0.6} /> New Reference</Button>
+                        <DropdownButton variant="primary" title="Do Something" size="sm" className="d-inline-block mx-1" disabled={this.state.selectedRows.length == 0 ? true : false}>
+                            <Dropdown.Item onClick={() => this.referenceAction('delete')}>Delete File</Dropdown.Item>
+                        </DropdownButton>
                     </Col>
                 </Row>
 
                 <div className="animate__animated animate__fadeIn">    
                     <DataTable
                         columns={this.state.columns}
-                        data={this.state.projects}
+                        data={this.state.references}
                         dense={false}
                         striped={true}
                         fixedHeader={true}
                         highlightOnHover={false}
+                        selectableRows
+                        onSelectedRowsChange={this.selectRows}
                     />
                 </div>
                
                <Modal centered show={this.state.showModal} onHide={() => this.setState({showModal: false})}>
                     <Modal.Header closeButton>
-                        <Modal.Title>Start New Project</Modal.Title>
+                        <Modal.Title>Upload New Reference</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
-                        <Project onHide={() => this.setState({showModal: false})} onGetProjects={() => this.getProjects()} />
+                        <UploadReference onHide={() => this.setState({showModal: false})} onGetReferences={() => this.getReferences()} />
                     </Modal.Body>
                     
                 </Modal>

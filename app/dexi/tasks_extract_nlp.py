@@ -22,7 +22,6 @@ import re
 import csv
 import numpy as np
 import os
-from spacy import displacy
 from collections import Counter
 import en_core_web_lg
 nlp = en_core_web_lg.load()
@@ -67,7 +66,7 @@ ner_index = []
 offset = 112 
 
 @shared_task
-def doc_extract(doc_id, extraction_id):
+def doc_extract_nlp(doc_id, extraction_id):
 
     doc = Doc.objects.get(pk=doc_id)
     extraction = Extraction.objects.get(pk=extraction_id)

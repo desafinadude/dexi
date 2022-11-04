@@ -2,9 +2,20 @@ from rest_framework import serializers
 from .models import Project, Permission, Doc, Extraction, Entity, EntityFound, Reference
 
 class ProjectSerializer(serializers.ModelSerializer):
+    extraction_count = serializers.SerializerMethodField()
+    doc_count = serializers.SerializerMethodField()
+
     class Meta:
         model = Project
         fields = "__all__"
+
+    def get_extraction_count(self, project):
+        extractions = Extraction.objects.filter(project=project)
+        return extractions.count()
+    
+    def get_doc_count(self, project):
+        docs = Doc.objects.filter(project=project)
+        return docs.count()
 
 class ProjectPermissionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -68,3 +79,9 @@ class EntityFoundSerializer(serializers.ModelSerializer):
         entity = EntitySerializer()
         fields = "__all__"
         depth = 1
+
+class ReferenceSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Reference
+        fields = "__all__"
