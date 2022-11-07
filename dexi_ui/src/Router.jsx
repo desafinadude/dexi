@@ -10,6 +10,7 @@ import { ProjectList } from './pages/Project_List';
 import { ProjectView } from './pages/Project_View';
 import { DocView } from './pages/Doc_View';
 import { ReferenceList } from './pages/Reference_List';
+import { QuickExtract } from './pages/Quick_Extract';
 
 
 export class Router extends Component {
@@ -33,6 +34,7 @@ export class Router extends Component {
             <Route path="/project/:projectId" element={<ProjectView />} />
             <Route path="/doc/:docId" element={<DocView />} />
             <Route path="/reference" element={<ReferenceList />} />
+            <Route path="/quick-extract" element={<QuickExtract />} />
         </Routes>
       )
     }

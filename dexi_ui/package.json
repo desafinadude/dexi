@@ -9,7 +9,6 @@
     "dependencies": {
         "@mdi/js": "^7.0.96",
         "@mdi/react": "^1.6.1",
-        "add": "^2.0.6",
         "animate.css": "^4.1.1",
         "axios": "^0.27.2",
         "bootstrap": "^5.2.1",
@@ -26,7 +25,6 @@
         "react-pdf": "^5.7.2",
         "react-reflex": "^4.0.9",
         "react-router-dom": "^6.3.0",
-        "react-split": "^2.0.14",
         "recharts": "^2.1.15",
         "styled-components": "^5.3.5",
         "yarn": "^1.22.19"

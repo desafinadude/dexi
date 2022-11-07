@@ -8,7 +8,8 @@ from .views import (
     ExtractionListApiView,
     EntityListApiView,
     EntityFoundListApiView,
-    ReferenceListApiView
+    ReferenceListApiView,
+    QuickExtractApiView
 )
 
 urlpatterns = [
@@ -23,4 +24,5 @@ urlpatterns = [
     path('entity/<int:entity_id>', EntityFoundListApiView.as_view()),
     path('entity/delete', EntityListApiView.as_view()),
     path('reference/', ReferenceListApiView.as_view()),
+    path('extract/', QuickExtractApiView.as_view()),
 ]

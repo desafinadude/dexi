@@ -19,6 +19,7 @@ from .serializers import ProjectSerializer, ProjectPermissionSerializer, DocSeri
 from .tasks_ocr import doc_ocr
 from .tasks_extract_nlp import doc_extract_nlp
 from .tasks_extract_reference import doc_extract_reference
+from .tasks_extract_quick import url_extract_quick
         
 # DOCS
 
@@ -350,3 +351,14 @@ class ReferenceListApiView(APIView):
                 Reference.objects.filter(id=reference.id).delete()
 
             return Response('Deleted', status=status.HTTP_200_OK)
+
+class QuickExtractApiView(APIView):
+    
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [authentication.TokenAuthentication]
+
+    def post(self, request, *args, **kwargs):
+
+        extract = url_extract_quick(request.data.get('url'))
+
+        return Response(extract, status=status.HTTP_200_OK)
