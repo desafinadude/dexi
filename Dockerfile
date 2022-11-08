@@ -44,5 +44,7 @@ RUN python -m spacy download en_core_web_sm
 
 EXPOSE 8000
 
-RUN gunicorn --bind :8000 --workers 3 app.wsgi:application
-RUN celery -A app worker -l info
+COPY ./entrypoint /app/entrypoint
+RUN sed -i 's/\r//' /app/entrypoint
+RUN chmod +x /app/entrypoint
+ENTRYPOINT ["/app/entrypoint"]
