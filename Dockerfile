@@ -42,4 +42,6 @@ RUN pip install -r requirements.txt
 
 RUN python -m spacy download en_core_web_sm
 
-CMD gunicorn dexi.wsgi:application --bind
+EXPOSE 8000
+
+CMD ["gunicorn", "--bind", ":8000", "--workers", "3", "app.wsgi:application"]
