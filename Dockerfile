@@ -1,35 +1,37 @@
 # Pull base image
-FROM python:3.7-alpine
+FROM python:3.7-slim
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
+ENV DEBIAN_FRONTEND noninteractive
 
 RUN pip install --upgrade pip
 
-RUN apk update && \
-   apk add build-base \
-   postgresql-dev \
+RUN apt update -y && \
+   apt install -y build-essential \
+   postgresql \
    bash \
    # Tessaract
    tesseract-ocr \
-   tesseract-ocr-dev \
+   libtesseract-dev \
    # Poppler
    cmake \
    poppler-utils \
-   poppler-dev \
+   libpoppler-dev \
+   libpoppler-cpp-dev \
    # Pillow Dependencies
-   freetype-dev \
-   fribidi-dev \
-   harfbuzz-dev \
-   jpeg-dev \
-   lcms2-dev \
+   libfreetype-dev \
+   libfribidi-dev \
+   libharfbuzz-dev \
+   libjpeg-dev \
+   liblcms2-dev \
    libimagequant-dev \
-   openjpeg-dev \
+   # openjpeg-dev \
    tcl-dev \
-   tiff-dev \
+   libtiff-dev \
    tk-dev \
-   zlib-dev
+   libghc-zlib-dev
 
 RUN mkdir /app
 COPY ./app /app
