@@ -5,6 +5,8 @@ FROM python:3.7-alpine
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
+RUN pip install --upgrade pip
+
 RUN apk update && \
    apk add build-base \
    postgresql-dev \
@@ -33,8 +35,8 @@ RUN mkdir /app
 COPY ./app /app
 WORKDIR /app
 
-RUN pip install --upgrade pip
 COPY ./requirements.txt /app/requirements.txt
 RUN pip install -r requirements.txt
 
 RUN python -m spacy download en_core_web_lg
+RUN python -m spacy download en_core_web_sm

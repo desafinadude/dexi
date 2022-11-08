@@ -5,17 +5,19 @@ services:
     build:
       context: .
     ports:
-      - "1111:1111"
+      - "2222:2222"
     volumes:
       - ./app:/app
     command: >
       sh -c "python3 manage.py wait_for_db &&
       python3 manage.py migrate &&
-      python3 manage.py runserver 0.0.0.0:1111"
+      python3 manage.py runserver 0.0.0.0:2222 &&
+      celery -A app worker -l info"
     env_file:
       - ./.env.dev
     depends_on:
       - db
+      - redis
 
   db:
     image: postgres:10-alpine
@@ -28,30 +30,6 @@ services:
 
   redis:
     image: redis:alpine
-
-  flower:
-    image: mher/flower
-    environment:
-      CELERY_BROKER_URL: redis://redis:6379
-      CELERY_RESULT_BACKEND: redis://redis:6379
-    depends_on:
-      - redis
-    ports:
-      - "5555:5555"
-
-  celery:
-    restart: always
-    build:
-      context: .
-    command: celery -A app worker -l info
-    volumes:
-      - ./app:/app
-    env_file:
-      - ./.env.dev
-    depends_on:
-      - db
-      - redis
-      - app
 
 volumes:
   pgdata:
