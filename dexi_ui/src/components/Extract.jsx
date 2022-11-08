@@ -128,7 +128,7 @@ export class Extract extends React.Component {
             <Form.Control name="name" type="text" size="sm" placeholder="Extraction Name" />
             <Form.Control name="description" as="textarea" rows={3} placeholder="Extraction Description" className="mt-2"/>
             <Form.Select size="sm" onChange={(e) => this.selectExtractor(e)} className="mt-2">
-                <option value='nlp'>NLP - No Reference</option>
+                <option value="nlp">NLP - No Reference</option>
                 {
                     this.state.references.map((reference, index) => {
                         return <option key={index} value={reference.id}>REFERENCE - {reference.name}</option>

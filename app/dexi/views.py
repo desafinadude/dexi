@@ -72,24 +72,28 @@ class DocListApiView(APIView):
             return Response('Sent to worker for conversion', status=status.HTTP_200_OK)
 
         elif request.data.get('action') == 'new':
-        
+
+            print(request.data)
+
             data = {
                 'name': request.data.get('name'),
                 'description': request.data.get('description'),
                 'project': kwargs.get('project_id'),
-                'reference': request.data.get('extractor'),
+                'reference': request.data.get('extractor') if request.data.get('extractor') != 'nlp' else None,
                 'user': request.user.id
             }
 
             serializer = ExtractionSerializer(data=data)
             
             if serializer.is_valid():
-                extraction = serializer.save()
-
+                serializer.save()
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
         elif request.data.get('action') == 'extract':
+            
 
             # Extract
             field_name_list = ['id','name','file','type','project','status','user']
@@ -109,31 +113,31 @@ class DocListApiView(APIView):
 
         elif request.data.get('action') == 'move':
                 
-                # Move
-                field_name_list = ['id','name','file','type','project','status','user']
-    
-                selected_docs = request.data.getlist('docs')
-                docs = Doc.objects.filter(id__in=selected_docs[0].split(','))
-                docs = docs.values(*field_name_list)
-    
-                for doc in docs:
-                    Doc.objects.filter(id=doc['id']).update(project=request.data.get('project'))
-    
-                return Response('Moved', status=status.HTTP_200_OK)
+            # Move
+            field_name_list = ['id','name','file','type','project','status','user']
+
+            selected_docs = request.data.getlist('docs')
+            docs = Doc.objects.filter(id__in=selected_docs[0].split(','))
+            docs = docs.values(*field_name_list)
+
+            for doc in docs:
+                Doc.objects.filter(id=doc['id']).update(project=request.data.get('project'))
+
+            return Response('Moved', status=status.HTTP_200_OK)
 
         elif request.data.get('action') == 'delete':
                 
-                # Delete
-                field_name_list = ['id','name','file','type','project','status','user']
-    
-                selected_docs = request.data.getlist('docs')
-                docs = Doc.objects.filter(id__in=selected_docs[0].split(','))
-                docs = docs.values(*field_name_list)
-    
-                for doc in docs:
-                    Doc.objects.filter(id=doc['id']).delete()
-    
-                return Response('Deleted', status=status.HTTP_200_OK)
+            # Delete
+            field_name_list = ['id','name','file','type','project','status','user']
+
+            selected_docs = request.data.getlist('docs')
+            docs = Doc.objects.filter(id__in=selected_docs[0].split(','))
+            docs = docs.values(*field_name_list)
+
+            for doc in docs:
+                Doc.objects.filter(id=doc['id']).delete()
+
+            return Response('Deleted', status=status.HTTP_200_OK)
 
         else:
             # No Action

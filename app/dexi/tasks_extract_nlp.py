@@ -23,8 +23,9 @@ import csv
 import numpy as np
 import os
 from collections import Counter
-import en_core_web_lg
-nlp = en_core_web_lg.load()
+import en_core_web_sm
+# nlp = en_core_web_sm.load()
+nlp = spacy.load("en_core_web_sm", disable=["tok2vec", "tagger", "parser", "attribute_ruler", "lemmatizer"])
 
 
 from .models import Doc, Entity, EntityFound, Extraction
@@ -169,8 +170,8 @@ def extractEntities(file):
                         # This excludes the included page numbers we've added for indexing purposes
                         if ('dexipage' not in ent[0] and '/tmp/' not in ent[0]):
 
-                            # No one letter entities please
-                            if (len(ent[0]) > 1):
+                            # No one or two letter entities please
+                            if (len(ent[0]) > 2):
 
                                 # This gets rid of most rubbish entities but is very crude and skips some good ones like emails
                                 # !"#$%&'()*+, -./:;<=>?@[\]^_`{|}~
@@ -192,7 +193,7 @@ def extractEntities(file):
                                 invalidcharacters = set(string.punctuation)
 
                                 if any(char in invalidcharacters for char in ent[0]):
-                                    print ("invalid")
+                                    print ("invalid characters in entity..." + ent[0])
                                 else:
                                     ner[key].append(ent[0])
 
@@ -224,12 +225,15 @@ def buildIndex(key, doc, text, extraction):
 
         entity = Entity.objects.filter(entity=ent, extraction=extraction).first()
 
+        print('Looking at...' + ent)
+
         for pos in res:
             page = indexEnt(pos, text)
-            if entity:
-                EntityFound.objects.create(
-                    entity=entity,
-                    doc=doc,
-                    page=page,
-                    pos=pos
-                )     
+            if page:
+                if entity:
+                    EntityFound.objects.create(
+                        entity=entity,
+                        doc=doc,
+                        page=page,
+                        pos=pos
+                    )     
