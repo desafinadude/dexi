@@ -9,7 +9,6 @@ services:
     command: >
       sh -c "python3 manage.py wait_for_db &&
       python3 manage.py migrate &&
-      gunicorn --limit-request-line 7168 --worker-class gevent dexi.wsgi:application -t 600 --log-file - -b 0.0.0.0:8000 &&
       celery -A app worker -l info"
     ports:
       - '8000:8000'
