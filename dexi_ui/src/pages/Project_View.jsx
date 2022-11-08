@@ -457,6 +457,8 @@ export class ProjectView extends React.Component {
                                     <Dropdown.Item onClick={() => this.entityAction('merge')}>Merge Entities</Dropdown.Item>
                                     <Dropdown.Item onClick={() => this.entityAction('delete')}>Delete Entity</Dropdown.Item>
                                 </DropdownButton>
+
+                                <Button size="sm" variant="info" onClick={() => this.getEntities()}><Icon path={mdiRefresh} size={0.7} color="#fff"/></Button>
                             </Col>
                         </Row>
                         <div className="animate__animated animate__fadeIn">    
