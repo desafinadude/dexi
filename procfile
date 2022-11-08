@@ -1,1 +1,0 @@
-gunicorn dexi.wsgi

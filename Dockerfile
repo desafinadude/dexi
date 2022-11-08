@@ -40,5 +40,6 @@ WORKDIR /app
 COPY ./requirements.txt /app/requirements.txt
 RUN pip install -r requirements.txt
 
-RUN python -m spacy download en_core_web_lg
 RUN python -m spacy download en_core_web_sm
+
+CMD gunicorn --limit-request-line 7168 --worker-class gevent dexi.wsgi:application -t 600 --log-file - -b 0.0.0.0:5000
