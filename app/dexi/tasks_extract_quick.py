@@ -25,8 +25,9 @@ import csv
 import numpy as np
 import os
 from collections import Counter
-import en_core_web_lg
-nlp = en_core_web_lg.load()
+import en_core_web_sm
+# nlp = en_core_web_sm.load()
+nlp = spacy.load("en_core_web_sm", disable=["tok2vec", "tagger", "parser", "attribute_ruler", "lemmatizer"])
 
 
 from .models import Doc, Entity, EntityFound, Extraction
