@@ -28,12 +28,12 @@ export class Project extends React.Component {
             }
         })
         .then((response) => {
+            console.log(response);
             this.props.onHide();
             this.props.onGetProjects();
         })
         .catch((error) => {
-            console.log(error);
-            alert(error.message);
+            console.log(error);            
         })
 
     }

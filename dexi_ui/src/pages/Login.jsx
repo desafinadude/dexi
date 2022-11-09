@@ -47,7 +47,7 @@ export class Login extends React.Component {
 
     render() {
         return (
-        <section className="bg-white vh-100">
+        <section className="vh-100">
             <Container className="py-5">
                 <Row className="justify-content-center">
                     <Col md="4">

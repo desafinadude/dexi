@@ -4,7 +4,7 @@ import { Route, Navigate, Routes } from 'react-router-dom';
 
 import { Welcome } from './pages/Welcome';
 import { Login } from './pages/Login';
-import { Register } from './pages/Register';
+import { SignUp } from './pages/SignUp';
 
 import { ProjectList } from './pages/Project_List';
 import { ProjectView } from './pages/Project_View';
@@ -28,7 +28,7 @@ export class Router extends Component {
         <Routes>
             <Route path="/" element={<Welcome />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+            <Route path="/signup" element={<SignUp />} />
 
             <Route path="/project" element={<ProjectList />} />
             <Route path="/project/:projectId" element={<ProjectView />} />
