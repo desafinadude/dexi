@@ -25,7 +25,8 @@ import os
 from collections import Counter
 import en_core_web_sm
 # nlp = en_core_web_sm.load()
-nlp = spacy.load("en_core_web_sm", disable=["tok2vec", "tagger", "parser", "attribute_ruler", "lemmatizer"])
+# nlp = spacy.load("en_core_web_sm", disable=["tok2vec", "tagger", "parser", "attribute_ruler", "lemmatizer"])
+nlp = spacy.load("en_core_web_sm")
 
 
 from .models import Doc, Entity, EntityFound, Extraction
