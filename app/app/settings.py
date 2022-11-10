@@ -30,6 +30,7 @@ DEBUG = True
 INSTALLED_APPS = [
     # 'jazzmin',
     # 'jet',
+    'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -121,7 +122,7 @@ REST_FRAMEWORK = {
 
 # CORS
 
-CORS_ALLOWED_ORIGINS = ['*.dexi.org.za']
+CORS_ALLOWED_ORIGINS = ['https://www.dexi.org.za','https://dexi.org.za']
 
 ALLOWED_HOSTS = ['api.dexi.org.za', 'localhost', '127.0.0.1'] 
 
