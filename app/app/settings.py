@@ -121,9 +121,9 @@ REST_FRAMEWORK = {
 
 # CORS
 
-CORS_ALLOWED_ORIGINS = ['www.dexi.org.za', 'dexi.org.za']
+CORS_ALLOWED_ORIGINS = ['*.dexi.org.za'']
 
-ALLOWED_HOSTS = ['api.dexi.org.za', 'dexi.org.za', 'localhost', '127.0.0.1'] 
+ALLOWED_HOSTS = ['api.dexi.org.za', 'localhost', '127.0.0.1'] 
 
 
 # Internationalization
