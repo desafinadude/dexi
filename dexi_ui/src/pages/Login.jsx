@@ -37,9 +37,9 @@ export class Login extends React.Component {
         newFormData.append("username", formDataObj.username);
         newFormData.append("password", formDataObj.password);
 
-        axios.post(process.env.API + '/login/', newFormData)
+        axios.post(process.env.API + '/dj-rest-auth/login/', newFormData)
         .then((response) => {
-            document.cookie = "dexitoken=" + response.data.token;
+            document.cookie = "dexitoken=" + response.data.key;
             window.location.href = "/project";
         })
 
