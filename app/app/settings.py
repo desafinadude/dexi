@@ -121,11 +121,9 @@ REST_FRAMEWORK = {
 
 # CORS
 
-CORS_ALLOWED_ORIGINS = [
-    os.environ.get('CORS_ALLOWED_ORIGIN'),
-]
+CORS_ALLOWED_ORIGINS = ['www.dexi.org.za', 'dexi.org.za']
 
-ALLOWED_HOSTS = ['dexi.org.za', 'www.dexi.org.za', 'localhost', '127.0.0.1'] 
+ALLOWED_HOSTS = ['api.dexi.org.za', 'dexi.org.za', 'localhost', '127.0.0.1'] 
 
 
 # Internationalization
