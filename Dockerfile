@@ -42,7 +42,7 @@ RUN pip install -r requirements.txt
 
 RUN python -m spacy download en_core_web_sm
 
-EXPOSE 8000
+EXPOSE 5000
 
 COPY ./entrypoint /app/entrypoint
 RUN sed -i 's/\r//' /app/entrypoint
