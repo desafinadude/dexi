@@ -1,3 +1,5 @@
+import axios from 'axios';
+
 export const getCookie = (name) => {
     let cookies, c;
     cookies = document.cookie.split(';');
@@ -26,8 +28,12 @@ export const isTokenSet = () => {
 }
 
 export const logout = () => {
-       document.cookie = "dexitoken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-       window.location.href = "/";
+       axios.post(process.env.API + '/dj-rest-auth/logout/')
+        .then((response) => {
+            console.log(response);
+            document.cookie = "dexitoken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            window.location.href = "/";
+        })
 }
 
 export const readSearchParams = () => {
