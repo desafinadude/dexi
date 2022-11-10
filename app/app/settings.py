@@ -125,7 +125,7 @@ CORS_ALLOWED_ORIGINS = [
     os.environ.get('CORS_ALLOWED_ORIGIN'),
 ]
 
-ALLOWED_HOSTS = [os.environ.get('ALLOWED_HOSTS'), 'localhost', '127.0.0.1'] 
+ALLOWED_HOSTS = ['dexi.org.za', 'www.dexi.org.za', 'localhost', '127.0.0.1'] 
 
 
 # Internationalization
