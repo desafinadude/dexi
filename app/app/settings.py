@@ -133,9 +133,9 @@ ACCOUNT_EMAIL_VERIFICATION = 'none'
 
 # CORS
 
-CORS_ALLOWED_ORIGINS = ['https://www.dexi.org.za','https://dexi.org.za']
+ALLOWED_HOSTS = ['*']
 
-ALLOWED_HOSTS = ['api.dexi.org.za', 'localhost', '127.0.0.1'] 
+CORS_ORIGIN_ALLOW_ALL = True
 
 
 # Internationalization

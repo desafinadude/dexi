@@ -31,7 +31,8 @@ RUN apt update -y && \
    tcl-dev \
    libtiff-dev \
    tk-dev \
-   libghc-zlib-dev
+   libghc-zlib-dev \
+   nano
 
 RUN mkdir /app
 COPY ./app /app
