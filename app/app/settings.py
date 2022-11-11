@@ -44,16 +44,18 @@ INSTALLED_APPS = [
     'dj_rest_auth.registration',
     'core',
     'dexi',
+    'corsheaders'
 ]
 
 SITE_ID = 1
 
 MIDDLEWARE = [
-    'app.middleware.CorsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'corsheaders.middleware.CorsPostCsrfMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -132,7 +134,19 @@ ACCOUNT_EMAIL_VERIFICATION = 'none'
 
 ALLOWED_HOSTS = ['*']
 
-CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOWED_ORIGINS = [
+    "https://dexi.org.za",
+    "https://api.dexi.org.za",
+    "https://www.dexi.org.za"
+]
+
+CORS_ALLOW_CREDENTIALS: bool
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://dexi.org.za",
+    "https://api.dexi.org.za",
+    "https://www.dexi.org.za"
+]
 
 
 # Internationalization
