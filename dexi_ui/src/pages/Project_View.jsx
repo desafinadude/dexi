@@ -4,7 +4,7 @@ import { isTokenSet, getCookie } from '../utils/utils';
 import dayjs from 'dayjs';
 
 import DataTable, { defaultThemes } from 'react-data-table-component';
-import { Upload } from '../components/Upload';
+import { Upload2 } from '../components/Upload2';
 import { Project } from '../components/Project';
 import { Extract } from '../components/Extract';
 import { DexiAlert } from '../components/DexiAlert';
@@ -66,10 +66,10 @@ export class ProjectView extends React.Component {
                     maxWidth: '150px'
                 },
                 {
-                    name: 'Text',
+                    name: 'Status',
                     selector: row => row.status,
                     cell: row => <span className={'badge bg-' + this.state.status.find(status => status.id == row.status).color}>{this.state.status.find(status => status.id == row.status).name}</span>,
-                    cell: row => row.status == 2 ? <Badge className="animate__animated animate__infinite animate__pulse">Converting</Badge> : row.status >= 3 ? <Badge bg="secondary">Ready</Badge> : '',
+                    cell: row => row.status == 2 ? <Badge className="animate__animated animate__infinite animate__pulse">Converting</Badge> : row.status == 3 ? <Badge bg="secondary">Ready</Badge> : row.status == 4 ? <Badge className="animate__animated animate__infinite animate__pulse">Extracting</Badge> : '',
                     maxWidth: '180px'
                 },
                 {
@@ -91,7 +91,7 @@ export class ProjectView extends React.Component {
                 {
                     name: 'Schema',
                     selector: row => row.schema,
-                    cell: row => <div className={'DexiBadge highlight highlight-' + row.schema}>{row.schema}</div>,
+                    cell: row => <OverlayTrigger placement="right" overlay={<Tooltip>HEEEEY</Tooltip>}><div className={'DexiBadge highlight highlight-' + row.schema}>{row.schema}</div></OverlayTrigger>,
                     maxWidth: '120px',
                     sortable: true
                 },
@@ -114,6 +114,7 @@ export class ProjectView extends React.Component {
             entities: [],
             selectedProject: undefined,
             docs: [],
+            docsLoading: true,
             extractions: [],
             selectedExtraction: undefined,
             selectedRows: [],
@@ -206,7 +207,7 @@ export class ProjectView extends React.Component {
             headers: { "Authorization": "token " + getCookie('dexitoken')}
             })
             .then((response) => {
-                self.setState({ docs: response.data })
+                self.setState({ docs: response.data, docsLoading: false })
             })
             .catch((error) => {
                 console.log(error);
@@ -274,17 +275,16 @@ export class ProjectView extends React.Component {
                 
             }
             if(action == 'extract') {
-
-                self.showModal('extract');
+                
+                if(self.state.selectedRows.filter(doc => doc.status < 3).length > 0) {
+                    self.setState({alert: {show: true, variant: 'danger', message: 'Some documents have not been converted yet.'}});
+                }  else {
+                    self.showModal('extract');
+                }
                 
             }
 
-            if(action == 'move') {
-
-                // MOVE
-
-                self.showModal('move');
-            }
+            
 
             if(action == 'delete') {
 
@@ -383,6 +383,10 @@ export class ProjectView extends React.Component {
         }
     }
 
+    setAlert = (alert) => {
+        this.setState({alert: alert});
+    }
+
     
 
     
@@ -435,6 +439,8 @@ export class ProjectView extends React.Component {
                                 highlightOnHover={false}
                                 selectableRows
                                 onSelectedRowsChange={this.selectRows}
+                                progressPending={this.state.docsLoading}
+                                pagination={true}
                             />
                         </div>
                     </Tab>
@@ -473,7 +479,7 @@ export class ProjectView extends React.Component {
                                 expandableRowsComponent={row => {return <EntityPages entity={row} project={this.state.selectedProject.id}/>}}
                                 onSelectedRowsChange={this.selectRows}
                                 progressPending={this.state.entitiesLoading}
-                                pagination={false}
+                                pagination={true}
                             />
                         </div>
                     </Tab>
@@ -488,9 +494,9 @@ export class ProjectView extends React.Component {
                         <Modal.Title>{this.state.showUpload ? 'Upload Documents' : this.state.showProject ? 'Create Project' : this.state.showExtract ? 'Start Extraction' : this.state.showMoveDoc ? 'Move Document' : 'Upload Reference'}</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
-                        { this.state.showUpload && <Upload project={this.state.selectedProject} onHide={() => this.setState({showModal: false})} /> }
+                        { this.state.showUpload && <Upload2 project={this.state.selectedProject} onHide={() => this.setState({showModal: false})} onGetDocs={() => this.getDocs()} /> }
                         { this.state.showProject && <Project onHide={() => this.setState({showModal: false})} onGetProjects={() => this.getProjects()} selectedProject={this.state.selectedProject}/> }
-                        { this.state.showExtract && <Extract docs={this.state.selectedRows} project={this.state.selectedProject} onHide={() => this.setState({showModal: false})} /> }
+                        { this.state.showExtract && <Extract docs={this.state.selectedRows} project={this.state.selectedProject} onHide={() => this.setState({showModal: false})} onSetAlert={(alert) => this.setAlert(alert)}/> }
                     </Modal.Body>
                     
                 </Modal>

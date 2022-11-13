@@ -110,15 +110,15 @@ def doc_extract_nlp(doc_id, extraction_id):
 
             
 
-            # doc.status = 4
-            # doc.save()
+            doc.status = 4
+            doc.save()
 
             # build index
             for key in ner:
                 buildIndex(key, doc, text, extraction)
 
-            # doc.status = 5
-            # doc.save()
+            doc.status = 3
+            doc.save()
 
         else:
             print("Can't Find That File")

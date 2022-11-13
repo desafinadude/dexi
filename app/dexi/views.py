@@ -12,9 +12,10 @@ from django.utils import timezone
 from django.db.models.functions import Lower
 from django.core.paginator import Paginator
 from django.db.models import Count, OuterRef, Subquery, Q
+from django.db import connection
 
 from .models import Project, Doc, Extraction, Entity, EntityFound, Reference
-from .serializers import ProjectSerializer, ProjectPermissionSerializer, DocSerializer, ExtractionSerializer, EntitySerializer, EntityFoundSerializer, ReferenceSerializer
+from .serializers import ProjectSerializer, ProjectPermissionSerializer, DocSerializer, ExtractionSerializer, EntitySerializer, EntityRawQuerySerializer, EntityFoundSerializer, ReferenceSerializer
 
 from .tasks_ocr import doc_ocr
 from .tasks_extract_nlp import doc_extract_nlp
@@ -170,8 +171,18 @@ class EntityListApiView(APIView):
     
         def get(self, request, *args, **kwargs):
 
-            entities = Entity.objects.filter(extraction=kwargs.get('extraction_id')).order_by('entity')
-            serializer = EntitySerializer(entities, many=True)
+            # SQL:
+            # select dexi_entity.*, 
+            # (select count(*) from dexi_entityfound where entity_id = dexi_entity.id),
+            # (select count(distinct doc_id) from dexi_entityfound where entity_id = dexi_entity.id)
+            # from dexi_entity 
+            # where extraction_id = 9
+            cursor = connection.cursor()
+            cursor.execute('select dexi_entity.*, (select count(*) from dexi_entityfound where entity_id = dexi_entity.id) as entity_count, (select count(distinct doc_id) from dexi_entityfound where entity_id = dexi_entity.id) as doc_count from dexi_entity where extraction_id = %s', [kwargs.get('extraction_id')])
+            res = cursor.fetchall()
+            # entities = Entity.objects.filter(extraction=kwargs.get('extraction_id')).order_by('entity')
+            # serializer = EntitySerializer(entities, many=True)
+            serializer = EntityRawQuerySerializer(res, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         def post(self, request, *args, **kwargs):

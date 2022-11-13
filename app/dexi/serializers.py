@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.db import models
 from .models import Project, Permission, Doc, Extraction, Entity, EntityFound, Reference
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -51,25 +52,40 @@ class ExtractionSerializer(serializers.ModelSerializer):
 
 
 class EntitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Entity
+        # doc = DocSerializer()
+        fields = "__all__"
+        depth = 1
+    
+
+class EntityRawQuerySerializer(serializers.Serializer):
+    id = serializers.SerializerMethodField()
+    entity = serializers.SerializerMethodField()
+    schema = serializers.SerializerMethodField()
+    extraction = serializers.SerializerMethodField()
     entity_count = serializers.SerializerMethodField()
     doc_count = serializers.SerializerMethodField()
 
-    class Meta:
-        model = Entity
-        doc = DocSerializer()
-        fields = "__all__"
-        depth = 2
+    def get_id(self, obj):
+        return obj[0]
 
-    def get_entity_count(self, entity):
-        entityFound = EntityFound.objects.filter(entity=entity)
-        return entityFound.count()
-    
-    def get_doc_count(self, entity):
-        entityFound = EntityFound.objects.filter(entity=entity)
-        docs = []
-        for e in entityFound:
-            docs.append(e.doc)
-        return len(set(docs))
+    def get_entity(self, obj):
+        return obj[1]
+
+    def get_schema(self, obj):
+        return obj[2]
+
+    def get_extraction(self, obj):
+        return obj[3]
+
+    def get_entity_count(self, obj):
+        return obj[4]
+
+    def get_doc_count(self, obj):
+        return obj[5]
+
+
 
 
 class EntityFoundSerializer(serializers.ModelSerializer):
@@ -79,6 +95,10 @@ class EntityFoundSerializer(serializers.ModelSerializer):
         entity = EntitySerializer()
         fields = "__all__"
         depth = 1
+
+        indexes = [
+            models.Index(fields=['entity', 'doc']),
+        ]
 
 class ReferenceSerializer(serializers.ModelSerializer):
 

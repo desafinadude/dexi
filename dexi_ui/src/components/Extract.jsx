@@ -72,42 +72,31 @@ export class Extract extends React.Component {
 
         let self = this;
 
-        if(self.props.docs.filter(doc => doc.status >= 4).length > 0) {
-                self.setState({alert: {show: true, variant: 'danger', message: 'Some documents are already extracted'}});
-        } else if(self.props.docs.filter(doc => doc.status <= 2).length > 0) {
-            self.setState({alert: {show: true, variant: 'danger', message: 'Some documents have not been converted to text'}});
-        }  else {
 
-            // EXTRACT
+        var newFormData = new FormData();
 
-            // let alert = {
-            //     show: true,
-            //     variant: 'success',
-            //     message: 'Extracting Entities'
-            // }
+        newFormData.append("docs", self.props.docs.map(doc => doc.id).join(','));
+        newFormData.append("extraction_id", extraction_id);
+        newFormData.append("extractor", self.state.extractor);
+        newFormData.append("action", "extract");
 
-            // self.setState({alert: alert});
+        axios.post(process.env.API + '/dexi/project/' + this.props.project.id + '/docs', newFormData, { headers: {
+            "Authorization": "token " + getCookie('dexitoken')
+            }})
+            .then((response) => {
+                this.props.onHide();
+                self.props.onSetAlert({
+                        show: true,
+                        variant: 'success',
+                        message: 'Extracting Entities'
+                    })
+                console.log(response)
+            })
+            .catch((error) => {
+                console.log(error);
+            })
 
-            this.props.onHide();
-
-            var newFormData = new FormData();
-
-            newFormData.append("docs", self.props.docs.map(doc => doc.id).join(','));
-            newFormData.append("extraction_id", extraction_id);
-            newFormData.append("extractor", self.state.extractor);
-            newFormData.append("action", "extract");
-
-            axios.post(process.env.API + '/dexi/project/' + this.props.project.id + '/docs', newFormData, { headers: {
-                "Authorization": "token " + getCookie('dexitoken')
-                }})
-                .then((response) => {
-                    console.log(response)
-                })
-                .catch((error) => {
-                    console.log(error);
-                })
-
-        }
+        
     
     
     }

@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import axios from 'axios';
-import { isTokenSet, getCookie, readSearchParams } from '../utils/utils';
+import { isTokenSet, getCookie, readSearchParams, schemasLookup } from '../utils/utils';
 import { useParams } from 'react-router-dom';
 
 import * as fs from 'fs';
@@ -18,6 +18,8 @@ import Dropdown from 'react-bootstrap/Dropdown';
 import DropdownButton from 'react-bootstrap/DropdownButton';
 import Breadcrumb from 'react-bootstrap/Breadcrumb';
 import Form from 'react-bootstrap/Form';
+import Overlay from 'react-bootstrap/Overlay';
+import Tooltip from 'react-bootstrap/Tooltip';
 
 
 import { ReflexContainer, ReflexSplitter, ReflexElement } from 'react-reflex'
@@ -33,7 +35,7 @@ import parse from "html-react-parser";
 import { Document, Page } from 'react-pdf/dist/esm/entry.parcel2';
 
 import Icon from '@mdi/react';
-import { mdiCalendarMonth, mdiFile, mdiFolder } from '@mdi/js';
+import { mdiCalendarMonth, mdiFile, mdiFolder, mdiInformation } from '@mdi/js';
 import { setFlagsFromString } from 'v8';
 
 function withParams(Component) {
@@ -395,21 +397,21 @@ export class DocView extends React.Component {
             <>
                 
                 <Container fluid className="my-4 px-3">
-
-                    <Breadcrumb>
-                        <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
-                        <Breadcrumb.Item href="/project">Projects</Breadcrumb.Item>
-                        { this.state.project &&
-                            <Breadcrumb.Item href={`/project/${this.state.project.id}`}>{this.state.project.name}</Breadcrumb.Item>
-                        }
-                        <Breadcrumb.Item active>{this.state.doc.name}</Breadcrumb.Item>
-                    </Breadcrumb>
-
-                    
-                    {/* <ul className="docMeta">
-                        <li><Icon path={mdiFile} size={0.7} color='#666'/> <a className="text-decoration-none" href={this.state.doc.file}>{this.state.doc.file != undefined && this.state.doc.file.slice(this.state.doc.file.lastIndexOf('/') + 1)}</a></li>
-                        <li><Icon path={mdiCalendarMonth} size={0.7} color='#666'/> {dayjs(this.state.doc.created_at).format('DD-MM-YYYY')}</li>
-                    </ul> */}
+                    <Row>
+                        <Col>
+                            <Breadcrumb>
+                                <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
+                                <Breadcrumb.Item href="/project">Projects</Breadcrumb.Item>
+                                { this.state.project &&
+                                    <Breadcrumb.Item href={`/project/${this.state.project.id}`}>{this.state.project.name}</Breadcrumb.Item>
+                                }
+                                <Breadcrumb.Item active>{this.state.doc.name}</Breadcrumb.Item>
+                            </Breadcrumb>
+                        </Col>
+                        <Col md="auto">
+                            <Button variant="primary" size="sm" onClick={() => this.setState({showExtractionModal: true})}><Icon path={mdiInformation} size={0.9} /> </Button>
+                        </Col>
+                    </Row>
                 </Container>
                 
                 <Container fluid className="px-3">
@@ -429,59 +431,59 @@ export class DocView extends React.Component {
 
                         <Tab eventKey="text" title="Text and Entities" className="bg-white">
                             
-                            { this.state.text != '' &&
-                                <ReflexContainer orientation="vertical">
+                            
+                            <ReflexContainer orientation="vertical">
 
-                                    <ReflexElement className="left-pane" style={{height: '100%'}}>
-                                        <div className="pane-content p-5" style={{fontFamily: 'courier', fontSize: '0.8em'}}>
-                                            {parse(this.state.highlightedText)}
-                                        </div>
-                                    </ReflexElement>
+                                <ReflexElement className="left-pane" style={{height: '100%'}}>
+                                    <div className="pane-content p-5" style={{fontFamily: 'courier', fontSize: '0.8em'}}>
+                                        {parse(this.state.highlightedText)}
+                                    </div>
+                                </ReflexElement>
 
-                                    <ReflexSplitter style={{minHeight: '100vh'}}/>
+                                <ReflexSplitter style={{minHeight: '100vh'}}/>
 
-                                    <ReflexElement className="right-pane bg-light" style={{height: '100%'}}>
-                                        <div className="pane-content p-3">
-                                            <Row className="mb-2">
-                                                <Col>
-                                                    {/* <MultiSelect
-                                                        options={this.state.schemas}
-                                                        value={this.state.selectedSchemas}
-                                                        onChange={this.setSchemas}
-                                                        labelledBy="Schemas"
-                                                        className="mb-3"
-                                                        disabled={this.state.loading}
-                                                    /> */}
-                                                    {this.state.extractionEntities.length} entities
-                                                </Col>
-                                                <Col md="auto">
-                                                    <Form.Select size="sm" onChange={(e) => this.selectExtraction(e)} className="animate__animated animate__fadeIn d-inline-block w-auto me-1 h-100">
-                                                        {
-                                                            this.state.extractions.map((extraction, index) => {
-                                                                return <option key={index} value={extraction.id}>{extraction.name}</option>
-                                                            })
-                                                        }
-                                                    </Form.Select>
-                                                    <DropdownButton variant="primary" title="Do Something" size="sm" className="d-inline-block mx-1" disabled={this.state.selectedRows.length == 0 ? true : false}>
-                                                        <Dropdown.Item onClick={() => this.entityAction('merge')}>Merge Entities</Dropdown.Item>
-                                                        <Dropdown.Item onClick={() => this.entityAction('delete')}>Delete Entity</Dropdown.Item>
-                                                    </DropdownButton>
-                                                </Col>
-                                            </Row>
-                                            
-                                            <DataTable
-                                                columns={this.state.columns}
-                                                data={this.state.extractionEntities}
-                                                dense={true}
-                                                progressPending={this.state.loading}
-                                                selectableRows={true}
-                                                onSelectedRowsChange={this.selectRows}
-                                            />
-                                        </div>
-                                    </ReflexElement>
+                                <ReflexElement className="right-pane bg-light" style={{height: '100%'}}>
+                                    <div className="pane-content p-3">
+                                        <Row className="mb-2">
+                                            <Col>
+                                                {/* <MultiSelect
+                                                    options={this.state.schemas}
+                                                    value={this.state.selectedSchemas}
+                                                    onChange={this.setSchemas}
+                                                    labelledBy="Schemas"
+                                                    className="mb-3"
+                                                    disabled={this.state.loading}
+                                                /> */}
+                                                {this.state.extractionEntities.length} entities
+                                            </Col>
+                                            <Col md="auto">
+                                                <Form.Select size="sm" onChange={(e) => this.selectExtraction(e)} className="animate__animated animate__fadeIn d-inline-block w-auto me-1 h-100">
+                                                    {
+                                                        this.state.extractions.map((extraction, index) => {
+                                                            return <option key={index} value={extraction.id}>{extraction.name}</option>
+                                                        })
+                                                    }
+                                                </Form.Select>
+                                                <DropdownButton variant="primary" title="Do Something" size="sm" className="d-inline-block mx-1" disabled={this.state.selectedRows.length == 0 ? true : false}>
+                                                    <Dropdown.Item onClick={() => this.entityAction('merge')}>Merge Entities</Dropdown.Item>
+                                                    <Dropdown.Item onClick={() => this.entityAction('delete')}>Delete Entity</Dropdown.Item>
+                                                </DropdownButton>
+                                            </Col>
+                                        </Row>
+                                        
+                                        <DataTable
+                                            columns={this.state.columns}
+                                            data={this.state.extractionEntities}
+                                            dense={true}
+                                            progressPending={this.state.loading}
+                                            selectableRows={true}
+                                            onSelectedRowsChange={this.selectRows}
+                                        />
+                                    </div>
+                                </ReflexElement>
 
-                                </ReflexContainer>
-                            }
+                            </ReflexContainer>
+                        
                             
                         </Tab>
                     </Tabs>

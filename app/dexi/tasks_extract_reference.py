@@ -118,9 +118,15 @@ def doc_extract_reference(doc_id, extraction_id):
                     # Delete file
                     # os.remove(str(doc.file) + '.txt')
 
+                    doc.status = 4
+                    doc.save()
+
                     # build index
                     for key in ner:
                         buildIndex(key, doc, text, extraction, reference_file)
+
+                    doc.status = 3
+                    doc.save()                
 
             else:
                 print("Reference file not found")
