@@ -141,7 +141,14 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:1234",
 ]
 
-CORS_ALLOW_CREDENTIALS: bool
+CORS_ORIGIN_WHITELIST = [
+    "https://dexi.org.za",
+    "https://api.dexi.org.za",
+    "https://www.dexi.org.za",
+    "http://localhost:1234",
+]
+
+CORS_ALLOW_CREDENTIALS: True
 
 CSRF_TRUSTED_ORIGINS = [
     "https://dexi.org.za",
