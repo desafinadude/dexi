@@ -270,7 +270,7 @@ export class ProjectView extends React.Component {
                     newFormData.append("docs", self.state.selectedRows.map(doc => doc.id).join(','));
                     newFormData.append("action", "convert");
                 
-                    axios.post(process.env.API + '/dexi/project/'+ self.state.selectedProject.id + '/docs/', newFormData, { headers: {
+                    axios.post(process.env.API + '/dexi/project/'+ self.state.selectedProject.id + '/docs', newFormData, { headers: {
                         "Authorization": "token " + getCookie('dexitoken')
                         }})
                         .then((response) => {
@@ -306,7 +306,7 @@ export class ProjectView extends React.Component {
                 newFormData.append("docs", self.state.selectedRows.map(doc => doc.id).join(','));
                 newFormData.append("action", "delete");
 
-                axios.post(process.env.API + '/dexi/project/'+ self.state.selectedProject.id + '/docs/', newFormData, { headers: {
+                axios.post(process.env.API + '/dexi/project/'+ self.state.selectedProject.id + '/docs', newFormData, { headers: {
                     "Authorization": "token " + getCookie('dexitoken')
                     }})
                     .then((response) => {

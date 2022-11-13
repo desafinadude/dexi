@@ -54,7 +54,7 @@ export class Extract extends React.Component {
         newFormData.append("extractor", self.state.extractor);
         newFormData.append("action", "new");
 
-        axios.post(process.env.API + '/dexi/project/' + this.props.project.id + '/docs/', newFormData,{ headers: {
+        axios.post(process.env.API + '/dexi/project/' + this.props.project.id + '/docs', newFormData,{ headers: {
             "Authorization": "token " + getCookie('dexitoken')
             }
         })
@@ -80,7 +80,7 @@ export class Extract extends React.Component {
         newFormData.append("extractor", self.state.extractor);
         newFormData.append("action", "extract");
 
-        axios.post(process.env.API + '/dexi/project/' + this.props.project.id + '/docs/', newFormData, { headers: {
+        axios.post(process.env.API + '/dexi/project/' + this.props.project.id + '/docs', newFormData, { headers: {
             "Authorization": "token " + getCookie('dexitoken')
             }})
             .then((response) => {

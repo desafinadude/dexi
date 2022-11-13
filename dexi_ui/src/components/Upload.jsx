@@ -48,7 +48,7 @@ export class Upload extends React.Component {
             
             newFormData.append("action", "upload");
 
-            axios.post(process.env.API + '/dexi/project/' + this.props.project.id + '/docs/', newFormData,{ headers: {
+            axios.post(process.env.API + '/dexi/project/' + this.props.project.id + '/docs', newFormData,{ headers: {
                 "Authorization": "token " + getCookie('dexitoken')
                 }
             })
