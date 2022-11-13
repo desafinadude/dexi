@@ -374,7 +374,7 @@ export class DocView extends React.Component {
             newFormData.append("entities", self.state.selectedRows.map(entity => entity.id).join(','));
             newFormData.append("action", "delete");
 
-            axios.post(process.env.API + '/dexi/entity/delete', newFormData, { headers: {
+            axios.post(process.env.API + '/dexi/entity/delete/', newFormData, { headers: {
                 "Authorization": "token " + getCookie('dexitoken')
                 }})
                 .then((response) => {
