@@ -41,6 +41,39 @@ class DocSerializer(serializers.ModelSerializer):
 
         extractions = Entity.objects.filter(id__in=entities).distinct('extraction_id')
         return extractions.count()
+
+class DocRawQuerySerializer(serializers.Serializer):
+    id = serializers.SerializerMethodField()
+    name = serializers.SerializerMethodField()
+    project = serializers.SerializerMethodField()
+    type = serializers.SerializerMethodField()
+    created_at = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
+    extraction_count = serializers.SerializerMethodField()
+
+    def get_id(self, doc):
+        return doc[0]
+
+    def get_name(self, doc):
+        return doc[1]
+    
+    def get_type(self, doc):
+        return doc[2]
+
+    def get_status(self, doc):
+        return doc[3]
+
+    def get_created_at(self, doc):
+        return doc[4]
+
+    def get_project(self, doc):
+        return doc[5]
+
+    def get_extraction_count(self, doc):
+        return doc[6]
+
+    
+        
         
 
 class ExtractionSerializer(serializers.ModelSerializer):
@@ -104,6 +137,7 @@ class EntityFoundRawQuerySerializer(serializers.Serializer):
     entity_id = serializers.SerializerMethodField()
     entity = serializers.SerializerMethodField()
     schema = serializers.SerializerMethodField()
+    extraction_id = serializers.SerializerMethodField()
     entity_count = serializers.SerializerMethodField()
 
     def get_entity_id(self, obj):
@@ -115,8 +149,14 @@ class EntityFoundRawQuerySerializer(serializers.Serializer):
     def get_schema(self, obj):
         return obj[2]
 
-    def get_entity_count(self, obj):
+    def get_extraction_id(self, obj):
         return obj[3]
+
+    def get_entity_count(self, obj):
+        return obj[4]
+    
+    
+
 
 class ReferenceSerializer(serializers.ModelSerializer):
 

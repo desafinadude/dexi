@@ -15,7 +15,7 @@ from django.db.models import Count, OuterRef, Subquery, Q
 from django.db import connection
 
 from .models import Project, Doc, Extraction, Entity, EntityFound, Reference
-from .serializers import ProjectSerializer, ProjectPermissionSerializer, DocSerializer, ExtractionSerializer, EntitySerializer, EntityRawQuerySerializer, EntityFoundSerializer, EntityFoundRawQuerySerializer, ReferenceSerializer
+from .serializers import ProjectSerializer, ProjectPermissionSerializer, DocSerializer, DocRawQuerySerializer, ExtractionSerializer, EntitySerializer, EntityRawQuerySerializer, EntityFoundSerializer, EntityFoundRawQuerySerializer, ReferenceSerializer
 
 from .tasks_ocr import doc_ocr
 from .tasks_extract_nlp import doc_extract_nlp
@@ -30,8 +30,14 @@ class DocListApiView(APIView):
     authentication_classes = [authentication.TokenAuthentication]
 
     def get(self, request, *args, **kwargs):
-        docs = Doc.objects.filter(project_id=kwargs.get('project_id'), user_id=request.user.id).order_by('id')
-        serializer = DocSerializer(docs, many=True)
+
+        
+
+
+        cursor = connection.cursor()
+        cursor.execute('select q3.did, q3.name, q3.type, q3.status, q3.created_at, q3.project_id, count(distinct q3.extraction_id) as extraction_count from (select q1.did, q1.name, q1.type, q1.status, q1.created_at, q1.project_id, de.extraction_id from (select dd.id as did, dd.name, dd.type, dd.status, dd.project_id, dd.created_at, def.entity_id from dexi_doc as dd left join dexi_entityfound as def ON def.doc_id = dd.id where dd.project_id = %s) as q1 left join dexi_entity as de on de.id = q1.entity_id group by de.extraction_id, q1.did, q1.name, q1.type, q1.status, q1.created_at, q1.project_id) as q3 group by q3.did, q3.name, q3.type, q3.status, q3.created_at, q3.project_id',  [kwargs['project_id']])
+        res = cursor.fetchall()
+        serializer = DocRawQuerySerializer(res, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     def post(self, request, *args, **kwargs):
@@ -204,7 +210,7 @@ class EntityFoundListApiView(APIView):
             else:
 
                 cursor = connection.cursor()
-                cursor.execute('select entity_id, dexi_entity.entity, dexi_entity.schema, count(*) as entity_count from dexi_entityfound inner join dexi_entity on dexi_entityfound.entity_id = dexi_entity.id where doc_id = %s group by entity_id, dexi_entity.entity, dexi_entity.schema', [kwargs.get('doc_id')])
+                cursor.execute('select entity_id, dexi_entity.entity, dexi_entity.schema, dexi_entity.extraction_id, count(*) as entity_count from dexi_entityfound inner join dexi_entity on dexi_entityfound.entity_id = dexi_entity.id where doc_id = %s group by entity_id, dexi_entity.entity, dexi_entity.schema, dexi_entity.extraction_id', [kwargs.get('doc_id')])
                 res = cursor.fetchall()
                 serializer = EntityFoundRawQuerySerializer(res, many=True)
 
