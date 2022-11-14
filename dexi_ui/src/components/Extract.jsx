@@ -60,6 +60,7 @@ export class Extract extends React.Component {
         })
         .then((response) => {
             self.startExtraction(response.data.id);
+            this.props.onHide();
         })
         .catch((error) => {
             alert(error.message);

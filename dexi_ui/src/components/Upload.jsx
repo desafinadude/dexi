@@ -1,93 +1,187 @@
-import React from 'react';
+import React from "react";
+import Dropzone from "react-dropzone";
 import axios from 'axios';
+import Button from 'react-bootstrap/Button';
 
 import { isTokenSet, getCookie } from '../utils/utils';
 
-import Form from 'react-bootstrap/Form';
-import Button from 'react-bootstrap/Button';
-import Spinner from 'react-bootstrap/Spinner';
+
 
 
 export class Upload extends React.Component {
+  constructor(props) {
+    super(props);
+    this.upload = this.upload.bind(this);
+    this.uploadFiles = this.uploadFiles.bind(this);
+    this.onDrop = this.onDrop.bind(this);
 
-    constructor(){
-        super();
-        this.state = {
-            status: 'idle',
-            filesToUpload: []
+    this.state = {
+      selectedFiles: undefined,
+      progressInfos: [],
+      message: [],
+      fileInfos: [],
+    };
+  }
+
+  componentDidMount() {
+  }
+
+  uploadFile(file, onUploadProgress) {
+    let formData = new FormData();
+
+    formData.append("file", file);
+    formData.append("action", "upload");
+
+    return axios.post(process.env.API + '/dexi/project/' + this.props.project.id + '/docs', formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        "Authorization": "token " + getCookie('dexitoken')
+      },
+      onUploadProgress,
+    });
+  }
+
+  upload(idx, file) {
+    let _progressInfos = [...this.state.progressInfos];
+
+    this.uploadFile(file, (event) => {
+      _progressInfos[idx].percentage = Math.round(
+        (100 * event.loaded) / event.total
+      );
+      this.setState({
+        _progressInfos,
+      });
+    })
+      .then((response) => {
+        this.setState((prev) => {
+          let nextMessage = [
+            ...prev.message,
+            'UPLOADED: ' + file.name,
+          ];
+          return {
+            message: nextMessage,
+          };
+        });
+        this.props.onGetDocs();
+      })
+      .catch(() => {
+        _progressInfos[idx].percentage = 0;
+        this.setState((prev) => {
+          let nextMessage = [
+            ...prev.message,
+            'ERROR: ' + file.name,
+          ];
+          return {
+            progressInfos: _progressInfos,
+            message: nextMessage,
+          };
+        });
+      });
+  }
+
+  uploadFiles() {
+    const selectedFiles = this.state.selectedFiles;
+
+    let _progressInfos = [];
+
+    for (let i = 0; i < selectedFiles.length; i++) {
+      _progressInfos.push({ percentage: 0, fileName: selectedFiles[i].name });
+    }
+
+    this.setState(
+      {
+        progressInfos: _progressInfos,
+        message: [],
+      },
+      () => {
+        for (let i = 0; i < selectedFiles.length; i++) {
+          this.upload(i, selectedFiles[i]);
         }
+        this.props.onGetDocs();
+      }
+    );
+  }
+
+  onDrop(files) {
+    if (files.length > 0) {
+      this.setState({ selectedFiles: files });
     }
+  }
 
-    componentDidMount() {
-        this.setState({status: 'idle'});
-    }
+  render() {
+    const { selectedFiles, progressInfos, message, fileInfos } = this.state;
 
-    uploadFiles = (e) => {
-        console.log(e);
-    }
+    return (
+      <div>
+        {progressInfos &&
+          progressInfos.map((progressInfo, index) => (
+            <div className="mb-2" key={index}>
+              <span>{progressInfo.fileName}</span>
+              <div className="progress">
+                <div
+                  className="progress-bar progress-bar-info"
+                  role="progressbar"
+                  aria-valuenow={progressInfo.percentage}
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                  style={{ width: progressInfo.percentage + "%" }}
+                >
+                  {progressInfo.percentage}%
+                </div>
+              </div>
+            </div>
+          ))}
 
-    showFiles = (e) => {
-        this.setState({filesToUpload: e.target.files});
-    }
+        <div className="my-3 text-center">
+          <Dropzone onDrop={this.onDrop}>
+            {({ getRootProps, getInputProps }) => (
+              <section>
+                <div {...getRootProps({ className: "dropzone" })}>
+                  <input {...getInputProps()} />
+                  {selectedFiles &&
+                  Array.isArray(selectedFiles) &&
+                  selectedFiles.length ? (
+                    <div className="selected-file">
+                      {selectedFiles.length > 3
+                        ? `${selectedFiles.length} files`
+                        : selectedFiles.map((file) => file.name).join(", ")}
+                    </div>
+                  ) : (
+                    `Drag and drop files here, or click to select files`
+                  )}
+                </div>
+                <aside className="selected-file-wrapper">
+                    <Button size="sm" className="mt-4" variant="primary" disabled={!selectedFiles} onClick={this.uploadFiles}>Upload</Button>
+                </aside>
+              </section>
+            )}
+          </Dropzone>
+        </div>
 
-    onFormSubmit = (e) => {
+        {message.length > 0 && (
+          <div className="alert alert-success" role="alert">
+            <ul style={{listStyle: 'none', paddingLeft: '0'}}>
+              {message.map((item, i) => {
+                return <li key={i}>{item}</li>;
+              })}
+            </ul>
+          </div>
+        )}
 
-        e.preventDefault();
-
-        const formData = new FormData(e.target), formDataObj = Object.fromEntries(formData.entries());
-
-        if(this.state.filesToUpload.length > 0 ) {
-
-            this.setState({status: 'submitted'});
-            
-            var newFormData = new FormData();
-
-            Array.from(this.state.filesToUpload).forEach(file => {
-                newFormData.append("file", file);
-            });
-            
-            newFormData.append("action", "upload");
-
-            axios.post(process.env.API + '/dexi/project/' + this.props.project.id + '/docs', newFormData,{ headers: {
-                "Authorization": "token " + getCookie('dexitoken')
-                }
-            })
-            .then((response) => {
-                this.setState({status: 'done'});
-                this.props.onHide();
-                console.log(response);
-            })
-            .catch((error) => {
-                console.log(error);
-                alert(error.message);
-            })
-        
-        } else {
-            alert('Please select a file to upload.');
-        }
-        
-
-    }
-
-    render() {
-
-        return (
-            <>
-            { this.state.status === 'idle' ? 
-                (
-                    <Form onSubmit={this.onFormSubmit}>
-                        
-                        <Form.Control className="mt-4" size="sm" name="file" type="file" multiple onChange={(e) => this.showFiles(e) } accept="application/pdf" />
-                        <Button size="sm" className="mt-4" variant="primary" type="submit">Submit</Button>
-                    </Form>
-                ) : 
-                this.state.status === 'submitted' ? 
-                (
-                    <Spinner animation="border" role="status"/>
-                ) : <p>Done!</p>
-            }
-            </>
-        )
-    }
-
+        {fileInfos.length > 0 && (
+          <div className="card">
+            <div className="card-header">List of Files</div>
+            <ul className="list-group list-group-flush">
+              {fileInfos &&
+                fileInfos.map((file, index) => (
+                  <li className="list-group-item" key={index}>
+                    <a href={file.url}>{file.name}</a>
+                  </li>
+                ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    );
+  }
 }

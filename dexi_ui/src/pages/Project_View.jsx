@@ -4,7 +4,7 @@ import { isTokenSet, getCookie, schemasLookup } from '../utils/utils';
 import dayjs from 'dayjs';
 
 import DataTable, { defaultThemes } from 'react-data-table-component';
-import { Upload2 } from '../components/Upload2';
+import { Upload } from '../components/Upload';
 import { Project } from '../components/Project';
 import { Extract } from '../components/Extract';
 import { DexiAlert } from '../components/DexiAlert';
@@ -206,6 +206,7 @@ export class ProjectView extends React.Component {
     
 
     getDocs = () => {
+
 
         let self = this;
 
@@ -503,7 +504,7 @@ export class ProjectView extends React.Component {
                         <Modal.Title>{this.state.showUpload ? 'Upload Documents' : this.state.showProject ? 'Create Project' : this.state.showExtract ? 'Start Extraction' : this.state.showMoveDoc ? 'Move Document' : 'Upload Reference'}</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
-                        { this.state.showUpload && <Upload2 project={this.state.selectedProject} onHide={() => this.setState({showModal: false})} onGetDocs={() => this.getDocs()} /> }
+                        { this.state.showUpload && <Upload project={this.state.selectedProject} onHide={() => this.setState({showModal: false})} onGetDocs={() => this.getDocs()} /> }
                         { this.state.showProject && <Project onHide={() => this.setState({showModal: false})} onGetProjects={() => this.getProjects()} selectedProject={this.state.selectedProject}/> }
                         { this.state.showExtract && <Extract docs={this.state.selectedRows} project={this.state.selectedProject} onHide={() => this.setState({showModal: false})} onSetAlert={(alert) => this.setAlert(alert)}/> }
                     </Modal.Body>

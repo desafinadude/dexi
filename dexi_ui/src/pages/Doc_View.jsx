@@ -63,17 +63,11 @@ export class DocView extends React.Component {
                 },
                 {
                     name: 'Count',
-                    selector: row => row.found,
-                    cell: row => row.found.length,
+                    selector: row => row.entity_count,
+                    cell: row => row.entity_count,
                     maxWidth: '20px',
                     sortable: true
                 },
-                // {
-                //     name: 'Page',
-                //     selector: row => row.found,
-                //     cell: row => row.found.map(p => p.page).join(', '),
-                //     maxWidth: '20px',
-                // },
                 {
                     name: 'Schema',
                     selector: row => row.schema,
@@ -270,56 +264,7 @@ export class DocView extends React.Component {
             }})
             .then((response) => {
 
-                let entities = [];
-
-                for (let i = 0; i < response.data.length; i++) {
-                    const entity = response.data[i];
-
-                    entities.push({
-                        id: entity.id,
-                        entity: entity.entity.entity,
-                        entity_id: entity.entity.id,
-                        entity_schema: entity.entity.schema,
-                        entity_extraction: entity.entity.extraction,
-                        page: entity.page,
-                        pos: entity.pos
-                    })
-                }
-
-                
-                let entitiesGrouped = [];
-
-                entities.forEach((entity) => {
-
-                    if(entitiesGrouped.find(e => e.id === entity.entity_id) === undefined) {
-                        entitiesGrouped.push({
-                            id: entity.entity_id,
-                            entity: entity.entity,
-                            schema: entity.entity_schema,
-                            extraction: entity.entity_extraction,
-                            found: [
-                                {
-                                    page: entity.page,
-                                    pos: entity.pos
-                                }
-                            ]
-                        })
-                    
-                    } else {
-
-                        let currentEntity = entitiesGrouped.find(e => e.id === entity.entity_id);
-
-                        if(currentEntity.found.find(f => f.page === entity.page) === undefined) {
-                            currentEntity.found.push({
-                                page: entity.page,
-                                pos: entity.pos
-                            });
-                        }
-
-                    }
-                })
-
-                self.setState({entities: entitiesGrouped}, () => self.filterEntitiesByExtraction());
+                self.setState({entities: response.data}, () => self.filterEntitiesByExtraction());
 
             })
             .catch((error) => {
@@ -331,7 +276,8 @@ export class DocView extends React.Component {
     filterEntitiesByExtraction = () => {
 
         let self = this;
-        let extractionEntities = self.state.entities.filter(e => e.extraction === parseInt(self.state.selectedExtraction));
+
+        let extractionEntities = self.state.entities.filter(e => parseInt(e.extraction_id) === parseInt(self.state.selectedExtraction));
 
         self.setState(
             {
