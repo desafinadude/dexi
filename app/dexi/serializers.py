@@ -10,6 +10,8 @@ class ProjectSerializer(serializers.ModelSerializer):
         model = Project
         fields = "__all__"
 
+    # TODO: Raw SQL query to get the count of extractions for each project
+
     def get_extraction_count(self, project):
         extractions = Extraction.objects.filter(project=project)
         return extractions.count()
