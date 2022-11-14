@@ -100,6 +100,24 @@ class EntityFoundSerializer(serializers.ModelSerializer):
             models.Index(fields=['entity', 'doc']),
         ]
 
+class EntityFoundRawQuerySerializer(serializers.Serializer):
+    entity_id = serializers.SerializerMethodField()
+    entity = serializers.SerializerMethodField()
+    schema = serializers.SerializerMethodField()
+    entity_count = serializers.SerializerMethodField()
+
+    def get_entity_id(self, obj):
+        return obj[0]
+
+    def get_entity(self, obj):
+        return obj[1]
+
+    def get_schema(self, obj):
+        return obj[2]
+
+    def get_entity_count(self, obj):
+        return obj[3]
+
 class ReferenceSerializer(serializers.ModelSerializer):
 
     class Meta:
