@@ -3,4 +3,5 @@ python3 manage.py wait_for_db
 python3 manage.py migrate
 gunicorn --bind :5000 --workers 3 --timeout 0 app.wsgi:application
 celery -A app worker -l info
+flower --port=5555
 exec "$@"
