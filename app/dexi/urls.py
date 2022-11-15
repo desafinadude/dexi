@@ -6,6 +6,7 @@ from .views import (
     ProjectListApiView,
     ProjectDetailApiView,
     ExtractionListApiView,
+    ExtractionDetailApiView,
     EntityListApiView,
     EntityFoundListApiView,
     ReferenceListApiView,
@@ -22,7 +23,8 @@ urlpatterns = [
     path('doc/<int:doc_id>/extractions', ExtractionListApiView.as_view()),
     path('doc/<int:doc_id>/entities', EntityFoundListApiView.as_view()),
     path('entity/<int:entity_id>', EntityFoundListApiView.as_view()),
-    path('entity/delete', EntityListApiView.as_view()),
+    path('entity/delete/', EntityListApiView.as_view()),
     path('reference/', ReferenceListApiView.as_view()),
     path('extract/', QuickExtractApiView.as_view()),
+    path('extraction/<int:extraction_id>', ExtractionDetailApiView.as_view()),
 ]

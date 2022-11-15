@@ -169,7 +169,23 @@ class ExtractionListApiView(APIView):
             extraction = Extraction.objects.filter(project_id=kwargs.get('project_id'), user_id=request.user.id).order_by('id')
             serializer = ExtractionSerializer(extraction, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
-            
+
+class ExtractionDetailApiView(APIView):
+
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [authentication.TokenAuthentication]
+
+    def get(self, request, *args, **kwargs):
+        extraction = Extraction.objects.get(id=kwargs.get('extraction_id'))
+        serializer = ExtractionSerializer(extraction)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def delete(self, request, *args, **kwargs):
+        extraction = Extraction.objects.get(id=kwargs.get('extraction_id'))
+        extraction.delete()
+        return Response('Deleted', status=status.HTTP_200_OK)
+
+
 class EntityListApiView(APIView):
         
         permission_classes = [permissions.IsAuthenticated]
@@ -185,7 +201,7 @@ class EntityListApiView(APIView):
 
         def post(self, request, *args, **kwargs):
             if request.data.get('action') == 'delete':
-                
+
                 # Delete
                 selected_entities = request.data.getlist('entities')
 
