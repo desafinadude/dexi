@@ -38,6 +38,9 @@ export class Header extends React.Component {
                         : 
                             <>
                                 <Nav.Item className="me-3">
+                                    <Nav.Link href="/quick-extract">QuickExtract</Nav.Link>
+                                </Nav.Item>
+                                <Nav.Item className="me-3">
                                     <Nav.Link href="/project">Projects</Nav.Link>
                                 </Nav.Item>
                                 <Nav.Item className="me-3">

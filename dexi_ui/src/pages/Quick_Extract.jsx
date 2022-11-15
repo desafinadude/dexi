@@ -150,7 +150,7 @@ export class QuickExtract extends React.Component {
 
                     <Breadcrumb>
                         <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
-                        <Breadcrumb.Item active>Quick Extract</Breadcrumb.Item>
+                        <Breadcrumb.Item active>QuickExtract</Breadcrumb.Item>
                     </Breadcrumb>
                     
                 </Container>
