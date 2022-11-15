@@ -21,6 +21,8 @@ pdf2image
 pytesseract
 Image
 pillow
+# DOC CONVERTER
+pypandoc_binary
 # SPACY and MODELS
 spacy
 blackstone
