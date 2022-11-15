@@ -18,7 +18,7 @@ import Dropdown from 'react-bootstrap/Dropdown';
 import DropdownButton from 'react-bootstrap/DropdownButton';
 import Breadcrumb from 'react-bootstrap/Breadcrumb';
 import Form from 'react-bootstrap/Form';
-import Overlay from 'react-bootstrap/Overlay';
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 
 
@@ -71,7 +71,16 @@ export class DocView extends React.Component {
                 {
                     name: 'Schema',
                     selector: row => row.schema,
-                    cell: row => <div className={'DexiBadge highlight highlight-' + row.schema}>{row.schema}</div>,
+                    cell: row => {
+                        // Get schema definition from schemaLookup
+                        let schema = schemasLookup[row.schema];
+                        return <OverlayTrigger placement="top" overlay={
+                            <Tooltip>{schema}</Tooltip>
+                        }>
+                            <div className={'DexiBadge highlight highlight-' + row.schema}>{row.schema}
+                            </div>
+                        </OverlayTrigger>
+                    },
                     maxWidth: '120px',
                     sortable: true
                 },
