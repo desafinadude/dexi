@@ -63,6 +63,7 @@ export class ExtractionDetails extends React.Component {
                     <dd>{dayjs(this.state.extraction.created_at).format('DD-MM-YYYY')}</dd>
                 </dl>
                 <Button variant="danger" size="sm" onClick={this.deleteExtraction}>Delete Extraction</Button>
+                <Button variant="primary" disabled size="sm" className="ms-1">Merge Extraction</Button>
             </>
 
         )
