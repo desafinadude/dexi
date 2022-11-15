@@ -446,7 +446,7 @@ export class ProjectView extends React.Component {
                                     <Dropdown.Item onClick={() => this.docAction('delete')}>Delete File</Dropdown.Item>
                                 </DropdownButton>
                                 
-                                <Button size="sm" variant="info" onClick={() => this.getEntities()}><Icon path={mdiRefresh} size={0.7} color="#fff"/></Button>
+                                <Button size="sm" variant="info" onClick={() => this.getDocs()}><Icon path={mdiRefresh} size={0.7} color="#fff"/></Button>
                             </Col>
                         </Row>
 
