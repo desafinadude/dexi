@@ -62,7 +62,7 @@ ner_index = []
 offset = 112 
 
 @shared_task
-def doc_extract_reference(doc_id, extraction_id):
+def doc_extract_reference(doc_id, extraction_id, mimetype):
 
     doc = Doc.objects.get(pk=doc_id)
     extraction = Extraction.objects.get(pk=extraction_id)
@@ -123,7 +123,7 @@ def doc_extract_reference(doc_id, extraction_id):
 
                     # build index
                     for key in ner:
-                        buildIndex(key, doc, text, extraction, reference_file)
+                        buildIndex(key, doc, text, extraction, reference_file, mimetype)
 
                     doc.status = 3
                     doc.save()                
@@ -148,7 +148,7 @@ def extractEntities(file, reference_rows):
 
     return text
 
-def buildIndex(key, doc, text, extraction, reference_rows):
+def buildIndex(key, doc, text, extraction, reference_rows, mimetype):
 
     text = text.lower()
 
@@ -174,7 +174,10 @@ def buildIndex(key, doc, text, extraction, reference_rows):
             entity = Entity.objects.filter(entity=row[0], extraction=extraction).first()
 
             for pos in res:
-                page = indexEnt(pos, text)
+                if(mimetype == 'application/pdf'):
+                    page = indexEnt(pos, text)
+                else: 
+                    page = 1 
                 if entity:
                     EntityFound.objects.create(
                         entity=entity,
