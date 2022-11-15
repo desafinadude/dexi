@@ -10,6 +10,7 @@ import { Extract } from '../components/Extract';
 import { DexiAlert } from '../components/DexiAlert';
 import { EntityPages } from '../components/EntityPages';
 import { ExtractionDetails } from '../components/ExtractionDetails';
+import { ProjectDetails } from '../components/ProjectDetails';
 
 import _ from 'lodash';
 
@@ -137,6 +138,7 @@ export class ProjectView extends React.Component {
             showMoveDoc: false,
             showEntityPages: false,
             showExtractionDetails: false,
+            showProjectDetails: false,
             selectedEntity: undefined,
             alert: {
                 show: false,
@@ -381,6 +383,7 @@ export class ProjectView extends React.Component {
                 showExtract: form == 'extract' ? true : false,
                 showMoveDoc: form == 'move' ? true : false,
                 showExtractionDetails: form == 'extractionDetails' ? true : false,
+                showProjectDetails: form == 'projectDetails' ? true : false,
             }
         );
     }
@@ -426,7 +429,7 @@ export class ProjectView extends React.Component {
 
                 <Row className="mb-2">
                     <Col>
-                        <h4 className="fw-normal" title={this.state.selectedProject && this.state.selectedProject.description ? this.state.selectedProject.description : ''}><Icon path={mdiBriefcase} size={0.9} /> {this.state.selectedProject && this.state.selectedProject.name}</h4>
+                        <h4 className="fw-normal" title={this.state.selectedProject && this.state.selectedProject.description ? this.state.selectedProject.description : ''}><Icon path={mdiBriefcase} size={0.9} /><span onClick={() => this.showModal('projectDetails')} className="text-primary" style={{cursor: "pointer"}}>{this.state.selectedProject && this.state.selectedProject.name}</span></h4>
                     </Col>
                 </Row>
 
@@ -509,13 +512,14 @@ export class ProjectView extends React.Component {
                
                <Modal centered show={this.state.showModal} onHide={() => this.setState({showModal: false})}>
                     <Modal.Header closeButton>
-                        <Modal.Title>{this.state.showUpload ? 'Upload Documents' : this.state.showProject ? 'Create Project' : this.state.showExtract ? 'Start Extraction' : this.state.showMoveDoc ? 'Move Document' : this.state.showExtractionDetails ? 'Extraction Details' : ''}</Modal.Title>
+                        <Modal.Title>{this.state.showUpload ? 'Upload Documents' : this.state.showProject ? 'Create Project' : this.state.showExtract ? 'Start Extraction' : this.state.showMoveDoc ? 'Move Document' : this.state.showExtractionDetails ? 'Extraction Details' : this.state.showProjectDetails ? 'Project Details' : ''}</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
                         { this.state.showUpload && <Upload project={this.state.selectedProject} onHide={() => this.setState({showModal: false})} onGetDocs={() => this.getDocs()} /> }
                         { this.state.showProject && <Project onHide={() => this.setState({showModal: false})} onGetProjects={() => this.getProjects()} selectedProject={this.state.selectedProject}/> }
                         { this.state.showExtract && <Extract docs={this.state.selectedRows} project={this.state.selectedProject} onHide={() => this.setState({showModal: false})} onSetAlert={(alert) => this.setAlert(alert)}/> }
                         { this.state.showExtractionDetails && <ExtractionDetails onHide={() => this.setState({showModal: false})} extraction={this.state.selectedExtraction} onGetExtractions={() => this.getExtractions()}/> }
+                        { this.state.showProjectDetails && <ProjectDetails onHide={() => this.setState({showModal: false})} project={this.state.selectedProject} /> }
                     </Modal.Body>
                     
                 </Modal>

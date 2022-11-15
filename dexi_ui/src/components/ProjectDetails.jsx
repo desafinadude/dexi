@@ -9,12 +9,12 @@ import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 
 
-export class ExtractionDetails extends React.Component {
+export class ProjectDetails extends React.Component {
 
     constructor(){
         super();
         this.state = {
-            extraction: {}
+            project: {}
             
         }
     }
@@ -22,11 +22,13 @@ export class ExtractionDetails extends React.Component {
     componentDidMount() {
         let self = this;
         
-        axios.get(process.env.API + '/dexi/extraction/' + this.props.extraction, { headers: {
+        axios.get(process.env.API + '/dexi/project/' + this.props.project.id, { headers: {
                 "Authorization": "token " + getCookie('dexitoken')
         }})
         .then((response) => {
-            self.setState({ extraction: response.data })
+            self.setState({ project: response.data })
+            
+
         })
         .catch((error) => {
             console.log(error);
@@ -37,11 +39,11 @@ export class ExtractionDetails extends React.Component {
 
     deleteExtraction = () => {
         let self = this;
-        axios.delete(process.env.API + '/dexi/extraction/' + this.props.extraction, { headers: {
+        axios.delete(process.env.API + '/dexi/project/' + this.props.project.id, { headers: {
             "Authorization": "token " + getCookie('dexitoken')
         }})
         .then((response) => {
-            self.props.onGetExtractions();
+            window.location.href = "/project";
             self.props.onHide();
 
         })
@@ -54,15 +56,18 @@ export class ExtractionDetails extends React.Component {
             <>
                 <dl>
                     <dt>Name:</dt>
-                    <dd>{this.state.extraction.name}</dd>
+                    <dd>{this.state.project.name}</dd>
                     <dt>Description:</dt>
-                    <dd>{this.state.extraction.description}</dd>
-                    <dt>Reference:</dt>
-                    <dd>{this.state.extraction.reference ? this.state.extraction.reference : 'None'}</dd>
+                    <dd>{this.state.project.description}</dd>
+                    <dt>Docs:</dt>
+                    <dd>{this.state.project.doc_count}</dd>
+                    <dt>Extractions:</dt>
+                    <dd>{this.state.project.extraction_count}</dd>
                     <dt>Created At:</dt>
-                    <dd>{dayjs(this.state.extraction.created_at).format('DD-MM-YYYY')}</dd>
+                    <dd>{dayjs(this.state.project.created_at).format('DD-MM-YYYY')}</dd>
                 </dl>
-                <Button variant="danger" size="sm" onClick={this.deleteExtraction}>Delete Extraction</Button>
+                <Button variant="danger" size="sm" onClick={this.deleteExtraction}>Delete Project</Button>
+                <Button variant="primary" disabled size="sm" className="ms-1">Share Project</Button>
             </>
 
         )

@@ -73,7 +73,8 @@ export class ProjectList extends React.Component {
                 show: false,
                 variant: 'success',
                 message: ''
-            }
+            },
+            loading: false
         }
         
     }
@@ -95,11 +96,12 @@ export class ProjectList extends React.Component {
 
     getProjects = () => {
         let self = this;
+        self.setState({loading: true});
         axios.get(process.env.API + '/dexi/project/', { headers: {
                 "Authorization": "token " + getCookie('dexitoken')
             }})
             .then((response) => {
-                self.setState({ projects: response.data })
+                self.setState({ projects: response.data, loading: false });
             })
             .catch((error) => {
                 console.log(error);
@@ -119,6 +121,7 @@ export class ProjectList extends React.Component {
             }
         );
     }
+    
 
     render() {
         return (<section className="pt-5" style={{minHeight: '100vh'}}>
@@ -151,6 +154,8 @@ export class ProjectList extends React.Component {
                         striped={true}
                         fixedHeader={true}
                         highlightOnHover={false}
+                        progressPending={this.state.loading}
+
                     />
                 </div>
                
