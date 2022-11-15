@@ -9,6 +9,7 @@ import { Project } from '../components/Project';
 import { Extract } from '../components/Extract';
 import { DexiAlert } from '../components/DexiAlert';
 import { EntityPages } from '../components/EntityPages';
+import { ExtractionDetails } from '../components/ExtractionDetails';
 
 import _ from 'lodash';
 
@@ -126,7 +127,8 @@ export class ProjectView extends React.Component {
             docsLoading: true,
             extractions: [],
             selectedExtraction: undefined,
-            selectedRows: [],
+            selectedDocsRows: [],
+            selectedEntitiesRows: [],
             entitiesLoading: true,
             showModal: false,
             showUpload: false,
@@ -134,6 +136,7 @@ export class ProjectView extends React.Component {
             showExtract: false,
             showMoveDoc: false,
             showEntityPages: false,
+            showExtractionDetails: false,
             selectedEntity: undefined,
             alert: {
                 show: false,
@@ -246,9 +249,14 @@ export class ProjectView extends React.Component {
             
     }
 
-    selectRows = ({ selectedRows }) => {
+    selectDocsRows = ({ selectedRows }) => {
         let self = this;
-        self.setState({selectedRows: selectedRows});
+        self.setState({selectedDocsRows: selectedRows});
+    }
+
+    selectEntitiesRows = ({ selectedRows }) => {
+        let self = this;
+        self.setState({selectedEntitiesRows: selectedRows});
     }
 
     docAction = (action) => {
@@ -259,7 +267,7 @@ export class ProjectView extends React.Component {
 
                 // CONVERT
 
-                if(self.state.selectedRows.filter(doc => doc.status >= 3).length > 0) {
+                if(self.state.selectedDocsRows.filter(doc => doc.status >= 3).length > 0) {
                     self.setState({alert: {show: true, variant: 'danger', message: 'Some documents are already converted'}});
                 }  else {
 
@@ -268,14 +276,14 @@ export class ProjectView extends React.Component {
 
                     var newFormData = new FormData();
 
-                    newFormData.append("docs", self.state.selectedRows.map(doc => doc.id).join(','));
+                    newFormData.append("docs", self.state.selectedDocsRows.map(doc => doc.id).join(','));
                     newFormData.append("action", "convert");
                 
                     axios.post(process.env.API + '/dexi/project/'+ self.state.selectedProject.id + '/docs', newFormData, { headers: {
                         "Authorization": "token " + getCookie('dexitoken')
                         }})
                         .then((response) => {
-                            console.log(response)
+                            self.setState({selectedDocsRows: []});
                         })
                         .catch((error) => {
                             console.log(error);
@@ -286,8 +294,8 @@ export class ProjectView extends React.Component {
             }
             if(action == 'extract') {
                 
-                if(self.state.selectedRows.filter(doc => doc.status < 3).length > 0) {
-                    self.setState({alert: {show: true, variant: 'danger', message: 'Some documents have not been converted yet.'}});
+                if(self.state.selectedDocsRows.filter(doc => doc.status < 3).length > 0) {
+                    self.setState({alert: {show: true, variant: 'danger', message: 'Some documents have not been converted yet.'},selectedDocsRows: []});
                 }  else {
                     self.showModal('extract');
                 }
@@ -304,14 +312,14 @@ export class ProjectView extends React.Component {
 
                 var newFormData = new FormData();
 
-                newFormData.append("docs", self.state.selectedRows.map(doc => doc.id).join(','));
+                newFormData.append("docs", self.state.selectedDocsRows.map(doc => doc.id).join(','));
                 newFormData.append("action", "delete");
 
                 axios.post(process.env.API + '/dexi/project/'+ self.state.selectedProject.id + '/docs', newFormData, { headers: {
                     "Authorization": "token " + getCookie('dexitoken')
                     }})
                     .then((response) => {
-                        self.setState({selectedRows: []});
+                        self.setState({selectedDocsRows: []});
                     })
                     .catch((error) => {
                         console.log(error);
@@ -337,14 +345,14 @@ export class ProjectView extends React.Component {
 
             var newFormData = new FormData();
 
-            newFormData.append("entities", self.state.selectedRows.map(entity => entity.id).join(','));
+            newFormData.append("entities", self.state.selectedEntitiesRows.map(entity => entity.id).join(','));
             newFormData.append("action", "delete");
 
             axios.post(process.env.API + '/dexi/entity/delete/', newFormData, { headers: {
                 "Authorization": "token " + getCookie('dexitoken')
                 }})
                 .then((response) => {
-                    self.setState({selectedRows: []}, () => self.getEntities());
+                    self.setState({selectedEntitiesRows: []}, () => self.getEntities());
                 })
                 .catch((error) => {
                     console.log(error);
@@ -372,7 +380,7 @@ export class ProjectView extends React.Component {
                 showProject: form == 'project' ? true : false,
                 showExtract: form == 'extract' ? true : false,
                 showMoveDoc: form == 'move' ? true : false,
-                showReferenceUpload: form == 'reference' ? true : false
+                showExtractionDetails: form == 'extractionDetails' ? true : false,
             }
         );
     }
@@ -429,13 +437,13 @@ export class ProjectView extends React.Component {
                             <Col md="auto">
                                 <Button variant="primary" onClick={() => this.showModal('upload')} size="sm"><Icon path={mdiFileUpload} size={0.6} /> New Document</Button>
                                 
-                                <DropdownButton variant="primary" title="Do Something" size="sm" className="d-inline-block mx-1" disabled={this.state.selectedRows.length == 0 ? true : false}>
+                                <DropdownButton variant="primary" title="Do Something" size="sm" className="d-inline-block mx-1" disabled={this.state.selectedDocsRows.length == 0 ? true : false}>
                                     <Dropdown.Item onClick={() => this.docAction('convert')}>Convert To Text</Dropdown.Item>
                                     <Dropdown.Item onClick={() => this.docAction('extract')}>Extract Entities</Dropdown.Item>
                                     <Dropdown.Item onClick={() => this.docAction('delete')}>Delete File</Dropdown.Item>
                                 </DropdownButton>
                                 
-                                <Button size="sm" variant="info" onClick={() => this.getDocs()}><Icon path={mdiRefresh} size={0.7} color="#fff"/></Button>
+                                <Button size="sm" variant="info" onClick={() => this.getEntities()}><Icon path={mdiRefresh} size={0.7} color="#fff"/></Button>
                             </Col>
                         </Row>
 
@@ -448,7 +456,7 @@ export class ProjectView extends React.Component {
                                 fixedHeader={true}
                                 highlightOnHover={false}
                                 selectableRows
-                                onSelectedRowsChange={this.selectRows}
+                                onSelectedRowsChange={this.selectDocsRows}
                                 progressPending={this.state.docsLoading}
                                 pagination={true}
                             />
@@ -458,7 +466,7 @@ export class ProjectView extends React.Component {
                         <Row className="justify-content-end py-3 px-2">
                             <Col>
                                 {this.state.selectedExtraction &&
-                                    <strong><Icon path={mdiPickaxe} size={0.8} /> <span onClick={() => this.extractionDetails()}>{this.state.extractions.find(ex => ex.id == this.state.selectedExtraction).name}</span></strong>
+                                    <strong><Icon path={mdiPickaxe} size={0.8} style={{marginTop: "-3px"}} /> <span onClick={() => this.showModal('extractionDetails')} className="text-primary" style={{cursor: "pointer"}}>{this.state.extractions.find(ex => ex.id == this.state.selectedExtraction).name}</span></strong>
                                 }
                             </Col>
                             <Col md="auto">
@@ -469,7 +477,7 @@ export class ProjectView extends React.Component {
                                         })
                                     }
                                 </Form.Select>
-                                <DropdownButton variant="primary" title="Do Something" size="sm" className="d-inline-block mx-1" disabled={this.state.selectedRows.length == 0 ? true : false}>
+                                <DropdownButton variant="primary" title="Do Something" size="sm" className="d-inline-block mx-1" disabled={this.state.selectedEntitiesRows.length == 0 ? true : false}>
                                     <Dropdown.Item onClick={() => this.entityAction('merge')}>Merge Entities</Dropdown.Item>
                                     <Dropdown.Item onClick={() => this.entityAction('delete')}>Delete Entity</Dropdown.Item>
                                 </DropdownButton>
@@ -487,7 +495,7 @@ export class ProjectView extends React.Component {
                                 selectableRows
                                 expandableRows={true}
                                 expandableRowsComponent={row => {return <EntityPages entity={row} project={this.state.selectedProject.id}/>}}
-                                onSelectedRowsChange={this.selectRows}
+                                onSelectedRowsChange={this.selectEntitiesRows}
                                 progressPending={this.state.entitiesLoading}
                                 pagination={true}
                             />
@@ -501,12 +509,13 @@ export class ProjectView extends React.Component {
                
                <Modal centered show={this.state.showModal} onHide={() => this.setState({showModal: false})}>
                     <Modal.Header closeButton>
-                        <Modal.Title>{this.state.showUpload ? 'Upload Documents' : this.state.showProject ? 'Create Project' : this.state.showExtract ? 'Start Extraction' : this.state.showMoveDoc ? 'Move Document' : 'Upload Reference'}</Modal.Title>
+                        <Modal.Title>{this.state.showUpload ? 'Upload Documents' : this.state.showProject ? 'Create Project' : this.state.showExtract ? 'Start Extraction' : this.state.showMoveDoc ? 'Move Document' : this.state.showExtractionDetails ? 'Extraction Details' : ''}</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
                         { this.state.showUpload && <Upload project={this.state.selectedProject} onHide={() => this.setState({showModal: false})} onGetDocs={() => this.getDocs()} /> }
                         { this.state.showProject && <Project onHide={() => this.setState({showModal: false})} onGetProjects={() => this.getProjects()} selectedProject={this.state.selectedProject}/> }
                         { this.state.showExtract && <Extract docs={this.state.selectedRows} project={this.state.selectedProject} onHide={() => this.setState({showModal: false})} onSetAlert={(alert) => this.setAlert(alert)}/> }
+                        { this.state.showExtractionDetails && <ExtractionDetails onHide={() => this.setState({showModal: false})} extraction={this.state.selectedExtraction} onGetExtractions={() => this.getExtractions()}/> }
                     </Modal.Body>
                     
                 </Modal>

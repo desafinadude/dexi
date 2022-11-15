@@ -123,7 +123,7 @@ export class DocView extends React.Component {
                 }
             ],
             selectedSchemas: [],
-            selectedRows: [],
+            selectedEntitiesRows: [],
             
         }
         
@@ -296,9 +296,9 @@ export class DocView extends React.Component {
         this.setState({selectedSchemas: selectedSchemas});
     }
 
-    selectRows = ({ selectedRows }) => {
+    selectEntitiesRows = ({ selectedRows }) => {
         let self = this;
-        self.setState({selectedRows: selectedRows});
+        self.setState({selectedEntitiesRows: selectedRows});
     }
 
     selectExtraction = (e) => {
@@ -317,7 +317,7 @@ export class DocView extends React.Component {
 
             var newFormData = new FormData();
 
-            newFormData.append("entities", self.state.selectedRows.map(entity => entity.id).join(','));
+            newFormData.append("entities", self.state.selectedEntitiesRows.map(entity => entity.entity_id).join(','));
             newFormData.append("action", "delete");
 
             axios.post(process.env.API + '/dexi/entity/delete/', newFormData, { headers: {
@@ -325,6 +325,7 @@ export class DocView extends React.Component {
                 }})
                 .then((response) => {
                     self.setState({selectedRows: []});
+                    self.getEntities();
                 })
                 .catch((error) => {
                     console.log(error);
@@ -410,7 +411,7 @@ export class DocView extends React.Component {
                                                         })
                                                     }
                                                 </Form.Select>
-                                                <DropdownButton variant="primary" title="Do Something" size="sm" className="d-inline-block mx-1" disabled={this.state.selectedRows.length == 0 ? true : false}>
+                                                <DropdownButton variant="primary" title="Do Something" size="sm" className="d-inline-block mx-1" disabled={this.state.selectedEntitiesRows.length == 0 ? true : false}>
                                                     <Dropdown.Item onClick={() => this.entityAction('merge')}>Merge Entities</Dropdown.Item>
                                                     <Dropdown.Item onClick={() => this.entityAction('delete')}>Delete Entity</Dropdown.Item>
                                                 </DropdownButton>
@@ -423,7 +424,7 @@ export class DocView extends React.Component {
                                             dense={true}
                                             progressPending={this.state.loading}
                                             selectableRows={true}
-                                            onSelectedRowsChange={this.selectRows}
+                                            onSelectedRowsChange={this.selectEntitiesRows}
                                         />
                                     </div>
                                 </ReflexElement>
