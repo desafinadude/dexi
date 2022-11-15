@@ -263,7 +263,7 @@ export class ProjectView extends React.Component {
 
     docAction = (action) => {
         let self = this;
-        if (self.state.selectedRows.length > 0) {
+        if (self.state.selectedDocsRows.length > 0) {
 
             if(action == 'convert') {
 
