@@ -1,6 +1,6 @@
 import React from 'react';
 import axios from 'axios';
-import { isTokenSet, getCookie, schemasLookup } from '../utils/utils';
+import { isTokenSet, getCookie, schemasLookup, mimeTypeLookup } from '../utils/utils';
 import dayjs from 'dayjs';
 
 import DataTable, { defaultThemes } from 'react-data-table-component';
@@ -58,7 +58,7 @@ export class ProjectView extends React.Component {
                 },
                 {
                     name: 'Type',
-                    selector: row => row.type.replace('application/', '').toUpperCase(),
+                    selector: row => mimeTypeLookup[row.type],
                     maxWidth: '50px'
                 },
                 {

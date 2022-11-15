@@ -21,6 +21,8 @@ from PIL import Image
 import pytesseract
 # from pdf2image import convert_from_path, convert_from_bytes
 
+import pypandoc
+
 import boto3
 
 from io import BytesIO
@@ -50,8 +52,6 @@ def doc_ocr(doc_id):
         if doc.type == 'application/pdf':
 
             print('yes it\'s a pdf')
-
-            # time.sleep(randint(1, 30))
         
             # Setting document status to "CONVERTING"
             data = {
@@ -108,6 +108,46 @@ def doc_ocr(doc_id):
             serializer = DocSerializer(instance=doc, data=data, partial = True)
             if serializer.is_valid():
                 serializer.save()
+
+        elif doc.type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' or doc.type == 'application/msword' or doc.type == 'application/vnd.oasis.opendocument.text' or doc.type == 'application/rtf':
+                
+                print('yes it\'s a docx')
+    
+                # Setting document status to "CONVERTING"
+                data = {
+                    'status': 2
+                }
+                serializer = DocSerializer(instance=doc, data=data, partial = True)
+                if serializer.is_valid():
+                    serializer.save()
+    
+                # Converting DOCX to TXT
+                s3.download_file(settings.AWS_STORAGE_BUCKET_NAME, str(doc.file), '/tmp/' + str(doc.file))
+                pypandoc.convert_file('/tmp/' + str(doc.file), 'plain', outputfile='/tmp/' + str(doc.file) + '.txt')
+    
+                # Upload converted file to S3
+                s3.upload_file('/tmp/' + str(doc.file) + '.txt', settings.AWS_STORAGE_BUCKET_NAME, str(doc.file) + '.txt')
+                response = s3.put_object_acl(ACL='public-read', Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key="%s" % (str(doc.file) + '.txt'))
+    
+                # Setting document status to "CONVERTED"
+                data = {
+                    'status': 3
+                }
+                serializer = DocSerializer(instance=doc, data=data, partial = True)
+                if serializer.is_valid():
+                    serializer.save()
+
+        elif doc.type == 'text/plain':
+                
+                print('yes it\'s a txt')
+    
+                # Setting document status to "CONVERTED"
+                data = {
+                    'status': 3
+                }
+                serializer = DocSerializer(instance=doc, data=data, partial = True)
+                if serializer.is_valid():
+                    serializer.save()
 
 
 def convert(sourcefile, destination_file):

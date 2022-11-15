@@ -68,3 +68,15 @@ export const schemasLookup =  {
     "FAC": "Buildings, airports, highways, bridges, etc.",
     "NORP": "Nationalities or religious or political groups."
 }
+
+export const mimeTypeLookup = {
+    "application/pdf": "pdf",
+    "application/msword": "doc",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
+    "application/vnd.oasis.opendocument.text": "odt",
+    "application/rtf": "rtf",
+    "text/plain": "txt",
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/tiff": "tiff"
+}
