@@ -112,9 +112,9 @@ class DocListApiView(APIView):
 
             for doc in docs:
                 if(request.data.get('extractor') == 'nlp'):
-                    extract = doc_extract_nlp(doc['id'], extraction_id)
+                    extract = doc_extract_nlp(doc['id'], extraction_id, doc['type'])
                 else:
-                    extract = doc_extract_reference(doc['id'], extraction_id)
+                    extract = doc_extract_reference(doc['id'], extraction_id, doc['type'])
     
             return Response('Extraction Done - Maybe', status=status.HTTP_200_OK)
 

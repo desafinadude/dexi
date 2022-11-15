@@ -47,11 +47,11 @@ def doc_ocr(doc_id):
 
         # TODO: Why not write these to a file's log? That could be a useful feature.
 
-        print('yes it\'s ready to be converted')
+        print('Starting OCR on doc: ' + str(doc_id))
 
         if doc.type == 'application/pdf':
 
-            print('yes it\'s a pdf')
+            print("It's a PDF")
         
             # Setting document status to "CONVERTING"
             data = {
@@ -111,7 +111,7 @@ def doc_ocr(doc_id):
 
         elif doc.type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' or doc.type == 'application/msword' or doc.type == 'application/vnd.oasis.opendocument.text' or doc.type == 'application/rtf':
                 
-                print('yes it\'s a docx')
+                print("It's a Doc")
     
                 # Setting document status to "CONVERTING"
                 data = {
@@ -139,7 +139,7 @@ def doc_ocr(doc_id):
 
         elif doc.type == 'text/plain':
                 
-                print('yes it\'s a txt')
+                print("It's plain text")
     
                 # Setting document status to "CONVERTED"
                 data = {

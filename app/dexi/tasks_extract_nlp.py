@@ -68,7 +68,7 @@ ner_index = []
 offset = 112 
 
 @shared_task
-def doc_extract_nlp(doc_id, extraction_id):
+def doc_extract_nlp(doc_id, extraction_id, mimetype):
 
     doc = Doc.objects.get(pk=doc_id)
     extraction = Extraction.objects.get(pk=extraction_id)
@@ -115,7 +115,7 @@ def doc_extract_nlp(doc_id, extraction_id):
 
             # build index
             for key in ner:
-                buildIndex(key, doc, text, extraction)
+                buildIndex(key, doc, text, extraction, mimetype)
 
             doc.status = 3
             doc.save()
@@ -200,7 +200,7 @@ def extractEntities(file):
 
     return text
 
-def buildIndex(key, doc, text, extraction):
+def buildIndex(key, doc, text, extraction, mimetype):
 
     text = text.lower()
 
@@ -229,7 +229,10 @@ def buildIndex(key, doc, text, extraction):
         print('Looking at...' + ent)
 
         for pos in res:
-            page = indexEnt(pos, text)
+            if(mimetype == 'application/pdf'):
+                page = indexEnt(pos, text)
+            else: 
+                page = 1            
             if page:
                 if entity:
                     EntityFound.objects.create(
