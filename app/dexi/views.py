@@ -292,6 +292,8 @@ class ProjectListApiView(APIView):
 
             return Response({"res": "Permission"}, status=status.HTTP_200_OK)
 
+    
+
 
 class ProjectDetailApiView(APIView):
     
@@ -317,11 +319,16 @@ class ProjectDetailApiView(APIView):
         serializer = ProjectSerializer(project_instance)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-    def put(self, request, project_id, *args, **kwargs):
-        
-        print('Project PUT')
+    def put(self, request, *args, **kwargs):
 
-        return Response({"res": "Project PUT"}, status=status.HTTP_200_OK)
+
+        project = Project.objects.get(id=kwargs.get('project_id'))
+        project.name = request.data.get('name')
+        project.description = request.data.get('description')
+        project.save()
+
+        serializer = ProjectSerializer(project)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     
     def delete(self, request, project_id, *args, **kwargs):

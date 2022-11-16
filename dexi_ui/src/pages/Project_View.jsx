@@ -10,7 +10,6 @@ import { Extract } from '../components/Extract';
 import { DexiAlert } from '../components/DexiAlert';
 import { EntityPages } from '../components/EntityPages';
 import { ExtractionDetails } from '../components/ExtractionDetails';
-import { ProjectDetails } from '../components/ProjectDetails';
 
 import _ from 'lodash';
 
@@ -429,7 +428,7 @@ export class ProjectView extends React.Component {
 
                 <Row className="mb-2">
                     <Col>
-                        <h4 className="fw-normal" title={this.state.selectedProject && this.state.selectedProject.description ? this.state.selectedProject.description : ''}><Icon path={mdiBriefcase} size={0.9} /><span onClick={() => this.showModal('projectDetails')} className="text-primary" style={{cursor: "pointer"}}>{this.state.selectedProject && this.state.selectedProject.name}</span></h4>
+                        <h4 className="fw-normal" title={this.state.selectedProject && this.state.selectedProject.description ? this.state.selectedProject.description : ''}><Icon path={mdiBriefcase} size={0.9} className="me-2"/><span onClick={() => this.showModal('project')} className="text-primary" style={{cursor: "pointer"}}>{this.state.selectedProject && this.state.selectedProject.name}</span></h4>
                     </Col>
                 </Row>
 
@@ -512,13 +511,17 @@ export class ProjectView extends React.Component {
                
                <Modal centered show={this.state.showModal} onHide={() => this.setState({showModal: false})}>
                     <Modal.Header closeButton>
-                        <Modal.Title>{this.state.showUpload ? 'Upload Documents' : this.state.showProject ? 'Create Project' : this.state.showExtract ? 'Start Extraction' : this.state.showMoveDoc ? 'Move Document' : this.state.showExtractionDetails ? 'Extraction Details' : this.state.showProjectDetails ? 'Project Details' : ''}</Modal.Title>
+                        <Modal.Title>{this.state.showUpload ? 'Upload Documents' : this.state.showProject ? 'Edit Project' : this.state.showExtract ? 'Start Extraction' : this.state.showMoveDoc ? 'Move Document' : this.state.showExtractionDetails ? 'Extraction Details' : this.state.showProjectDetails ? 'Project Details' : ''}</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
                         { this.state.showUpload && <Upload project={this.state.selectedProject} onHide={() => this.setState({showModal: false})} onGetDocs={() => this.getDocs()} /> }
-                        { this.state.showProject && <Project onHide={() => this.setState({showModal: false})} onGetProjects={() => this.getProjects()} selectedProject={this.state.selectedProject}/> }
+
+                        { this.state.showProject && <Project onHide={() => this.setState({showModal: false})} onGetProject={() => this.getProject(this.state.selectedProject.id)} selectedProject={this.state.selectedProject.id}/> }
+
                         { this.state.showExtract && <Extract docs={this.state.selectedDocsRows} project={this.state.selectedProject} onHide={() => this.setState({showModal: false})} onSetAlert={(alert) => this.setAlert(alert)}/> }
+
                         { this.state.showExtractionDetails && <ExtractionDetails onHide={() => this.setState({showModal: false})} extraction={this.state.selectedExtraction} onGetExtractions={() => this.getExtractions()}/> }
+
                         { this.state.showProjectDetails && <ProjectDetails onHide={() => this.setState({showModal: false})} project={this.state.selectedProject} /> }
                     </Modal.Body>
                     
