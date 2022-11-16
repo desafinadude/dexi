@@ -2,6 +2,7 @@ import React from "react";
 import Dropzone from "react-dropzone";
 import axios from 'axios';
 import Button from 'react-bootstrap/Button';
+import Alert from 'react-bootstrap/Alert';
 
 import { isTokenSet, getCookie } from '../utils/utils';
 
@@ -147,11 +148,15 @@ export class Upload extends React.Component {
                         : selectedFiles.map((file) => file.name).join(", ")}
                     </div>
                   ) : (
-                    `Drag and drop files here, or click to select files`
+                    <Alert variant="info" className="cursor-pointer">
+                      Drop some files here, or click to select files
+                    </Alert>
                   )}
                 </div>
                 <aside className="selected-file-wrapper">
+                  {Array.isArray(selectedFiles) && selectedFiles.length > 0 &&
                     <Button size="sm" className="mt-4" variant="primary" disabled={!selectedFiles} onClick={this.uploadFiles}>Upload</Button>
+                  } 
                 </aside>
               </section>
             )}
