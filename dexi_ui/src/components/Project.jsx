@@ -23,8 +23,8 @@ export class Project extends React.Component {
                 description: ''
                 // users: []
             }
-        },
-        this.addUserControl = React.createRef();
+        }
+        
     }
 
     componentDidMount() {

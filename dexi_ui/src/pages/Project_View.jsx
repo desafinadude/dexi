@@ -9,6 +9,7 @@ import { Project } from '../components/Project';
 import { Extract } from '../components/Extract';
 import { DexiAlert } from '../components/DexiAlert';
 import { EntityPages } from '../components/EntityPages';
+import { EditEntity } from '../components/EditEntity';
 import { ExtractionDetails } from '../components/ExtractionDetails';
 
 import _ from 'lodash';
@@ -33,7 +34,7 @@ import ListGroup from 'react-bootstrap/ListGroup';
 
 
 import Icon from '@mdi/react';
-import { mdiFileUpload, mdiShuffleVariant, mdiDiversify, mdiFolder, mdiRefresh, mdiSelectGroup, mdiBriefcase, mdiPickaxe } from '@mdi/js';
+import { mdiFileUpload, mdiShuffleVariant, mdiDiversify, mdiFolder, mdiRefresh, mdiSelectGroup, mdiBriefcase, mdiPickaxe, mdiTimerSettingsOutline } from '@mdi/js';
 
 
 
@@ -138,6 +139,7 @@ export class ProjectView extends React.Component {
             showEntityPages: false,
             showExtractionDetails: false,
             showProjectDetails: false,
+            showEntityEdit: false,
             selectedEntity: undefined,
             alert: {
                 show: false,
@@ -383,6 +385,7 @@ export class ProjectView extends React.Component {
                 showMoveDoc: form == 'move' ? true : false,
                 showExtractionDetails: form == 'extractionDetails' ? true : false,
                 showProjectDetails: form == 'projectDetails' ? true : false,
+                showEntityEdit: form == 'editEntity' ? true : false,
             }
         );
     }
@@ -407,8 +410,10 @@ export class ProjectView extends React.Component {
         this.setState({alert: alert});
     }
 
-    
+    resetSelectedRows = () => {
+        this.setState({selectedDocsRows: [], selectedEntitiesRows: []});
 
+    }
     
 
     render() {
@@ -480,8 +485,9 @@ export class ProjectView extends React.Component {
                                     }
                                 </Form.Select>
                                 <DropdownButton variant="primary" title="Do Something" size="sm" className="d-inline-block mx-1" disabled={this.state.selectedEntitiesRows.length == 0 ? true : false}>
-                                    <Dropdown.Item onClick={() => this.entityAction('merge')}>Merge Entities</Dropdown.Item>
-                                    <Dropdown.Item onClick={() => this.entityAction('delete')}>Delete Entity</Dropdown.Item>
+                                    <Dropdown.Item disabled={this.state.selectedEntitiesRows.length < 2 ? true : false} onClick={() => this.entityAction('merge')}>Merge Entities</Dropdown.Item>
+                                    <Dropdown.Item onClick={() => this.entityAction('delete')}>{this.state.selectedEntitiesRows.length > 1 ? 'Delete Entities' : 'Delete Entity' }</Dropdown.Item>
+                                    <Dropdown.Item disabled={this.state.selectedEntitiesRows.length > 1 ? true : false} onClick={() => this.showModal('editEntity')}>Edit Entity</Dropdown.Item>
                                 </DropdownButton>
 
                                 <Button size="sm" variant="info" onClick={() => this.getEntities()}><Icon path={mdiRefresh} size={0.7} color="#fff"/></Button>
@@ -511,7 +517,7 @@ export class ProjectView extends React.Component {
                
                <Modal centered show={this.state.showModal} onHide={() => this.setState({showModal: false})}>
                     <Modal.Header closeButton>
-                        <Modal.Title>{this.state.showUpload ? 'Upload Documents' : this.state.showProject ? 'Edit Project' : this.state.showExtract ? 'Start Extraction' : this.state.showMoveDoc ? 'Move Document' : this.state.showExtractionDetails ? 'Extraction Details' : this.state.showProjectDetails ? 'Project Details' : ''}</Modal.Title>
+                        <Modal.Title>{this.state.showUpload ? 'Upload Documents' : this.state.showProject ? 'Edit Project' : this.state.showExtract ? 'Start Extraction' : this.state.showMoveDoc ? 'Move Document' : this.state.showExtractionDetails ? 'Extraction Details' : this.state.showProjectDetails ? 'Project Details' : this.state.showEntityEdit ? 'Edit Entity' : ''}</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
                         { this.state.showUpload && <Upload project={this.state.selectedProject} onHide={() => this.setState({showModal: false})} onGetDocs={() => this.getDocs()} /> }
@@ -523,6 +529,8 @@ export class ProjectView extends React.Component {
                         { this.state.showExtractionDetails && <ExtractionDetails onHide={() => this.setState({showModal: false})} extraction={this.state.selectedExtraction} onGetExtractions={() => this.getExtractions()}/> }
 
                         { this.state.showProjectDetails && <ProjectDetails onHide={() => this.setState({showModal: false})} project={this.state.selectedProject} /> }
+                    
+                        { this.state.showEntityEdit && <EditEntity onHide={() => this.setState({showModal: false})} entity={this.state.selectedEntitiesRows} onGetEntities={() => this.getEntities()} onResetSelectedRows={() => this.resetSelectedRows()}/> }
                     </Modal.Body>
                     
                 </Modal>

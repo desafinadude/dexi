@@ -374,16 +374,18 @@ export class DocView extends React.Component {
 
                     <Tabs activeKey={this.state.tab} onSelect={(k) => this.setState({tab: k})} className="mt-3">
                         
-                        <Tab eventKey="pdf" title="Document" className="bg-white">
-                            <Document file={this.state.doc.file} onLoadSuccess={this.onDocumentLoadSuccess}>
-                                <Page pageNumber={this.state.pdf_pageNumber} width={800}/>
-                            </Document>
-                            <div className="text-center mt-2 mb-4">
-                                <p>Page {this.state.pdf_pageNumber || (this.state.pdf_numPages ? 1 : '--')} of {this.state.pdf_numPages || '--'}</p>
-                                <Button type="button" disabled={this.state.pdf_pageNumber <= 1} onClick={this.previousPage}>Previous</Button>
-                                <Button type="button" disabled={this.state.pdf_pageNumber >= this.state.pdf_numPages} onClick={this.nextPage}>Next</Button>
-                            </div>
-                        </Tab>
+                        { this.state.doc.type == 'application/pdf' &&
+                            <Tab eventKey="pdf" title="Document" className="bg-white">
+                                <Document file={this.state.doc.file} onLoadSuccess={this.onDocumentLoadSuccess}>
+                                    <Page pageNumber={this.state.pdf_pageNumber} width={800}/>
+                                </Document>
+                                <div className="text-center mt-2 mb-4">
+                                    <p>Page {this.state.pdf_pageNumber || (this.state.pdf_numPages ? 1 : '--')} of {this.state.pdf_numPages || '--'}</p>
+                                    <Button type="button" disabled={this.state.pdf_pageNumber <= 1} onClick={this.previousPage}>Previous</Button>
+                                    <Button type="button" disabled={this.state.pdf_pageNumber >= this.state.pdf_numPages} onClick={this.nextPage}>Next</Button>
+                                </div>
+                            </Tab>
+                        }   
 
                         <Tab eventKey="text" title="Text and Entities" className="bg-white">
                             
@@ -399,44 +401,54 @@ export class DocView extends React.Component {
                                 <ReflexSplitter style={{minHeight: '100vh'}}/>
 
                                 <ReflexElement className="right-pane bg-light" style={{height: '100%'}}>
-                                    <div className="pane-content p-3">
-                                        <Row className="mb-2">
-                                            <Col>
-                                                {/* <MultiSelect
-                                                    options={this.state.schemas}
-                                                    value={this.state.selectedSchemas}
-                                                    onChange={this.setSchemas}
-                                                    labelledBy="Schemas"
-                                                    className="mb-3"
-                                                    disabled={this.state.loading}
-                                                /> */}
-                                                {this.state.extractionEntities.length} entities
-                                            </Col>
-                                            <Col md="auto">
-                                                <Form.Select size="sm" onChange={(e) => this.selectExtraction(e)} className="animate__animated animate__fadeIn d-inline-block w-auto me-1 h-100">
-                                                    {
-                                                        this.state.extractions.map((extraction, index) => {
-                                                            return <option key={index} value={extraction.id}>{extraction.name}</option>
-                                                        })
-                                                    }
-                                                </Form.Select>
-                                                <DropdownButton variant="primary" title="Do Something" size="sm" className="d-inline-block mx-1" disabled={this.state.selectedEntitiesRows.length == 0 ? true : false}>
-                                                    <Dropdown.Item onClick={() => this.entityAction('merge')}>Merge Entities</Dropdown.Item>
-                                                    <Dropdown.Item onClick={() => this.entityAction('delete')}>Delete Entity</Dropdown.Item>
-                                                </DropdownButton>
-                                            </Col>
-                                        </Row>
-                                        
-                                        <DataTable
-                                            columns={this.state.columns}
-                                            data={this.state.extractionEntities}
-                                            dense={true}
-                                            progressPending={this.state.loading}
-                                            selectableRows={true}
-                                            onSelectedRowsChange={this.selectEntitiesRows}
-                                        />
-                                    </div>
-                                </ReflexElement>
+
+                                    { this.state.extractions.length > 0 ?
+
+                                        <div className="pane-content p-3">
+                                            <Row className="mb-2">
+                                                <Col>
+                                                    {/* <MultiSelect
+                                                        options={this.state.schemas}
+                                                        value={this.state.selectedSchemas}
+                                                        onChange={this.setSchemas}
+                                                        labelledBy="Schemas"
+                                                        className="mb-3"
+                                                        disabled={this.state.loading}
+                                                    /> */}
+                                                    {this.state.extractionEntities.length} entities
+                                                </Col>
+                                                <Col md="auto">
+                                                    <Form.Select size="sm" onChange={(e) => this.selectExtraction(e)} className="animate__animated animate__fadeIn d-inline-block w-auto me-1 h-100">
+                                                        {
+                                                            this.state.extractions.map((extraction, index) => {
+                                                                return <option key={index} value={extraction.id}>{extraction.name}</option>
+                                                            })
+                                                        }
+                                                    </Form.Select>
+                                                    <DropdownButton variant="primary" title="Do Something" size="sm" className="d-inline-block mx-1" disabled={this.state.selectedEntitiesRows.length == 0 ? true : false}>
+                                                        <Dropdown.Item onClick={() => this.entityAction('merge')}>Merge Entities</Dropdown.Item>
+                                                        <Dropdown.Item onClick={() => this.entityAction('delete')}>Delete Entity</Dropdown.Item>
+                                                    </DropdownButton>
+                                                </Col>
+                                            </Row>
+                                            
+                                                <DataTable
+                                                    columns={this.state.columns}
+                                                    data={this.state.extractionEntities}
+                                                    dense={true}
+                                                    progressPending={this.state.loading}
+                                                    selectableRows={true}
+                                                    onSelectedRowsChange={this.selectEntitiesRows}
+                                                />
+                    
+                                        </div>
+                                        :
+                                        <div className="pane-content p-5 text-center">
+                                            <p>No extractions found.<br/>Go back to the <a href={`/project/${this.state.project.id}`}>project page</a> to start a new extraction.</p>
+                                        </div>
+                                    }
+
+                                    </ReflexElement>
 
                             </ReflexContainer>
                         

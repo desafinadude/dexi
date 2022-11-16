@@ -231,6 +231,15 @@ class EntityFoundListApiView(APIView):
                 serializer = EntityFoundRawQuerySerializer(res, many=True)
 
                 return Response(serializer.data, status=status.HTTP_200_OK)
+
+        def put(self, request, *args, **kwargs):
+
+            # update entity
+            entity = Entity.objects.get(id=kwargs.get('entity_id'))
+            entity.schema = request.data.get('schema')
+            entity.save()
+
+            return Response('Updated', status=status.HTTP_200_OK)
             
 
 class DocDetailApiView(APIView):

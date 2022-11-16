@@ -80,3 +80,13 @@ export const mimeTypeLookup = {
     "image/png": "png",
     "image/tiff": "tiff"
 }
+
+export const nlpModels = {
+    "en_core_web_sm": "English (small)",
+    // "en_core_web_md": "English (medium)",
+    // "en_core_web_lg": "English (large)",
+    // "en_core_web_trf": "English (transformers)",
+    // "blackstone": "Blackstone (English)",
+    // "openTapioca": "Open Tapioca (English)",
+    "fishing": "Fishing (English)",
+}
