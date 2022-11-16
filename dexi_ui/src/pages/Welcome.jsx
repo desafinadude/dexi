@@ -58,7 +58,6 @@ export class Welcome extends React.Component {
         <section className="py-5">
             <Container className="text-center pt-4">
                 <h2 className="text-primary font-special-elite">DEXI LOVES DOCUMENTS</h2>
-                <p>Here are some features blah blah blah</p>
 
                 <Row className="py-5 text-start features-block justify-content-md-center">
                     <Col md={4}>
