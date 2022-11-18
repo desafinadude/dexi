@@ -90,3 +90,24 @@ export const nlpModels = {
     // "openTapioca": "Open Tapioca (English)",
     "fishing": "Fishing (English)",
 }
+
+export const schemaColors = {
+    "PERSON": "#f44336",
+    "ORG": "#2196f3",
+    "GPE": "#4caf50",
+    "LOC": "#ff9800",
+    "PRODUCT": "#9c27b0",
+    "EVENT": "#ffeb3b",
+    "WORK_OF_ART": "#795548",
+    "LAW": "#607d8b",
+    "LANGUAGE": "#e91e63",
+    "DATE": "#673ab7",
+    "TIME": "#00bcd4",
+    "PERCENT": "#8bc34a",
+    "MONEY": "#ffc107",
+    "QUANTITY": "#3f51b5",
+    "ORDINAL": "#009688",
+    "CARDINAL": "#cddc39",
+    "FAC": "#ff5722",
+    "NORP": "#9e9e9e",
+}

@@ -5,6 +5,43 @@ $info: #a2afc7 !default;
 $warning: #f0ad4e !default;
 $danger: #b9302c !default;
 
+$schemas : (
+    'PERSON': #D989B8,
+    'ORG': #7D93B0,
+    'GPE': #8268AB,
+    'FAC': #F5DFB3,
+    'NORP': #FFC18C,
+    'LOC': #9DC2BE,
+    'EMAIL': #9DF5F0,
+    'IBAN': #9DF5F0,
+    'WORK_OF_ART': #795548,
+    'PRODUCT': #9DF5F0,
+    
+    'EVENT': #9DF5F0,
+    'LAW': #9DF5F0,
+    'LANGUAGE': #9DF5F0,
+    'DATE': #9DF5F0,
+    'TIME': #9DF5F0,
+    'PERCENT': #9DF5F0,
+    'MONEY': #9DF5F0,
+    'QUANTITY': #9DF5F0,
+    'ORDINAL': #9DF5F0,
+    'CARDINAL': #9DF5F0
+);
+
+@each $schema, $color in $schemas {
+
+    .highlight-#{$schema} {
+        background-color: $color !important;
+    }
+
+    .text-color-#{$schema} {
+        color: $color !important;
+    }
+    
+}
+
+
 
 @import "bootstrap/scss/bootstrap";
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Special+Elite&display=swap');
@@ -44,89 +81,11 @@ body {
     display: inline-block;
     border-radius: 5px;
     padding: 0 5px;
-
 }
 
-.highlight-PERSON {
-    background-color: #D989B8;
-}
 
-.highlight-ORG {
-    background-color: #7D93B0;
-}
 
-.highlight-LOC {
-    background-color: #9DC2BE;
-}
-
-.highlight-GPE {
-    background-color: #8268AB;
-}
-
-.highlight-NORP {
-    background-color: #FFC18C;
-}
-
-.highlight-FAC {
-    background-color: #F5DFB3;
-}
-
-.highlight-LAW {
-    background-color: #9DF5F0;
-}
-
-.highlight-EVENT {
-    background-color: #9DF5F0;
-}
-
-.highlight-PRODUCT {
-    background-color: #9DF5F0;
-}
-
-.highlight-WORK_OF_ART {
-    background-color: #9DF5F0;
-}
-
-.highlight-LANGUAGE {
-    background-color: #9DF5F0;
-}
-
-.highlight-DATE {
-    background-color: #9DF5F0;
-}
-
-.highlight-TIME {
-    background-color: #9DF5F0;
-}
-
-.highlight-PERCENT {
-    background-color: #9DF5F0;
-}
-
-.highlight-MONEY {
-    background-color: #9DF5F0;
-}
-
-.highlight-QUANTITY {
-    background-color: #9DF5F0;
-}
-
-.highlight-ORDINAL {
-    background-color: #9DF5F0;
-}
-
-.highlight-CARDINAL {
-    background-color: #9DF5F0;
-}
-
-.highlight-EMAIL {
-    background-color: #9DF5F0;
-}
-
-.highlight-IBAN {
-    background-color: #9DF5F0;
-}
-
+  
 .DexiBadge {
     font-size: 12px;
     padding: 0.2em 0.5em;
@@ -171,8 +130,6 @@ footer {
     top: -3px;
 }
 
-.custom-checkbox-checked {
-}
 
 .custom-checkbox-checked::after {
     content: '✓';

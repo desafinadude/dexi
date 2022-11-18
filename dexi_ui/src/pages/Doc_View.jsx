@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import axios from 'axios';
-import { isTokenSet, getCookie, readSearchParams, schemasLookup } from '../utils/utils';
+import { isTokenSet, getCookie, readSearchParams, schemasLookup, schemaColors } from '../utils/utils';
 import { useParams } from 'react-router-dom';
 
 import * as fs from 'fs';
@@ -20,6 +20,8 @@ import Breadcrumb from 'react-bootstrap/Breadcrumb';
 import Form from 'react-bootstrap/Form';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
+
+import TagCloud from 'react-tag-cloud';
 
 
 import { ReflexContainer, ReflexSplitter, ReflexElement } from 'react-reflex'
@@ -133,6 +135,13 @@ export class DocView extends React.Component {
             ],
             selectedSchemas: [],
             selectedEntitiesRows: [],
+            cloud: [
+                { text: 'Hey', value: 10 },
+                { text: 'lol', value: 55 },
+                { text: 'first impression', value: 5 },
+                { text: 'very cool', value: 1 },
+                { text: 'duck', value: 2 },
+            ]
             
         }
         
@@ -294,12 +303,31 @@ export class DocView extends React.Component {
                 loading: false
             },
             () => {
+                self.setCloud();
                 self.highlightText()
             }
         );
 
         
     }
+
+    setCloud = () => {
+        let self = this;
+
+        let cloud = [];
+        
+        self.state.extractionEntities.forEach((entity) => {
+            cloud.push({
+                text: entity.entity,
+                value: entity.entity_count,
+                schema: entity.schema
+            })
+        })
+        
+        self.setState({cloud: cloud});
+    }
+
+
 
     setSchemas = (selectedSchemas) => {
         this.setState({selectedSchemas: selectedSchemas});
@@ -453,6 +481,23 @@ export class DocView extends React.Component {
                             </ReflexContainer>
                         
                             
+                        </Tab>
+                        <Tab eventKey="viz" title="Viz" className="bg-white">
+                            <TagCloud 
+                                style={{
+                                    fontFamily: 'sans-serif',
+                                    fontSize: 16,
+                                    fontWeight: 'bold',
+                                    fontStyle: 'italic',
+                                    padding: 4,
+                                    width: '100%',
+                                    height: '300px'
+                                }}>
+                                {this.state.extractionEntities.map((entity, index) => {
+                                    return <div key={index} className={'text-color-' + entity.schema} style={{fontSize: ((entity.entity_count - 1) / (16-1) * 36) + 16}}>{entity.entity}</div>
+                                })}
+                                
+                            </TagCloud>
                         </Tab>
                     </Tabs>
 
