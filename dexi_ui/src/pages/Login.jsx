@@ -13,7 +13,8 @@ export class Login extends React.Component {
     constructor(){
         super();
         this.state = {
-            
+            valid: true,
+            error: ''
         }
         
     }
@@ -41,7 +42,9 @@ export class Login extends React.Component {
         .then((response) => {
             document.cookie = "dexitoken=" + response.data.key;
             window.location.href = "/project";
-        })
+        }).catch((error) => {
+            this.setState({valid: false, error: error.response.data.non_field_errors[0]});
+        });
 
     }
 
@@ -55,8 +58,9 @@ export class Login extends React.Component {
                             <Card.Body>
                                 <h4 className="text-center mb-5">Login</h4>
                                 <form onSubmit={this.onFormSubmit}>
-                                    <Form.Control size="sm" type="text" placeholder="Username" name="username" className="mb-2"/>
-                                    <Form.Control size="sm" type="password" placeholder="Password" name="password"/>
+                                    <Form.Control size="sm" type="text" placeholder="Username" name="username" className="mb-2" required/>
+                                    <Form.Control size="sm" type="password" placeholder="Password" name="password" required/>
+                                    {!this.state.valid && <small className="mt-3 text-danger d-block">{this.state.error}</small>}
                                     <Button size="sm" type="submit" className="mt-3 more-rounded text-white" variant="secondary">Login</Button>
                                 </form>
                             </Card.Body>
