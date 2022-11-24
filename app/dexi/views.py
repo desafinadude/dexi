@@ -226,7 +226,7 @@ class EntityFoundListApiView(APIView):
             else:
 
                 cursor = connection.cursor()
-                cursor.execute('select entity_id, dexi_entity.entity, dexi_entity.schema, dexi_entity.extraction_id, count(*) as entity_count from dexi_entityfound inner join dexi_entity on dexi_entityfound.entity_id = dexi_entity.id where doc_id = %s group by entity_id, dexi_entity.entity, dexi_entity.schema, dexi_entity.extraction_id', [kwargs.get('doc_id')])
+                cursor.execute('select entity_id, dexi_entity.entity, dexi_entity.schema, dexi_entity.extraction_id, dexi_entity.prefer_id, count(*) as entity_count, dexi_entityfound.page from dexi_entityfound inner join dexi_entity on dexi_entityfound.entity_id = dexi_entity.id where doc_id = %s group by entity_id, dexi_entity.entity, dexi_entity.schema, dexi_entity.extraction_id, dexi_entity.prefer_id, dexi_entityfound.page', [kwargs.get('doc_id')])
                 res = cursor.fetchall()
                 serializer = EntityFoundRawQuerySerializer(res, many=True)
 
@@ -240,7 +240,28 @@ class EntityFoundListApiView(APIView):
             entity.save()
 
             return Response('Updated', status=status.HTTP_200_OK)
+
+class EntityMergeApiView(APIView):
             
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [authentication.TokenAuthentication]
+
+    def post(self, request, *args, **kwargs):
+
+        # update entities with preferred entity
+        selected_entities = request.data.get('entities')
+        preferred_entity = request.data.get('prefer')
+
+        entities = selected_entities.split(',')
+        preferred_entity_object = Entity.objects.get(id=preferred_entity)
+
+        for entity in entities:
+            if entity != preferred_entity:
+                entity_object = Entity.objects.get(id=entity)
+                entity_object.prefer = preferred_entity_object
+                entity_object.save()
+
+        return Response('Merged', status=status.HTTP_200_OK)
 
 class DocDetailApiView(APIView):
     

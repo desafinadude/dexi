@@ -11,6 +11,7 @@ import { DexiAlert } from '../components/DexiAlert';
 import { EntityPages } from '../components/EntityPages';
 import { EditEntity } from '../components/EditEntity';
 import { ExtractionDetails } from '../components/ExtractionDetails';
+import { MergeEntity } from '../components/MergeEntity';
 
 import _ from 'lodash';
 
@@ -70,7 +71,6 @@ export class ProjectView extends React.Component {
                 {
                     name: 'Status',
                     selector: row => row.status,
-                    cell: row => <span className={'badge bg-' + this.state.status.find(status => status.id == row.status).color}>{this.state.status.find(status => status.id == row.status).name}</span>,
                     cell: row => row.status == 2 ? <Badge className="animate__animated animate__infinite animate__pulse">Converting</Badge> : row.status == 3 ? <Badge bg="secondary">Ready</Badge> : row.status == 4 ? <Badge className="animate__animated animate__infinite animate__pulse">Extracting</Badge> : '',
                     maxWidth: '180px'
                 },
@@ -115,7 +115,18 @@ export class ProjectView extends React.Component {
                 },
                 {
                     name: 'Documents',
-                    selector: row => row.doc_count,
+                    selector: row => row.mergedEntities.length > 0 ? '≥ 1' : row.doc_count,
+                    maxWidth: '100px',
+                    center: true,
+                    sortable: true
+                },
+                {
+                    name: 'Merged',
+                    selector: row => row.mergedEntities.length,
+                    cell: row => row.mergedEntities.length > 0 ? <OverlayTrigger placement="top" overlay={
+                        <Tooltip>{row.mergedEntities.map((entity,index) => entity.entity).join(', ')}</Tooltip>
+                    }><Badge>{row.mergedEntities.length}</Badge>
+                    </OverlayTrigger> : '',
                     maxWidth: '100px',
                     center: true,
                     sortable: true
@@ -140,6 +151,7 @@ export class ProjectView extends React.Component {
             showExtractionDetails: false,
             showProjectDetails: false,
             showEntityEdit: false,
+            showMergeEntity: false,
             selectedEntity: undefined,
             alert: {
                 show: false,
@@ -240,9 +252,25 @@ export class ProjectView extends React.Component {
             headers: { "Authorization": "token " + getCookie('dexitoken')}
             })
             .then((response) => {
+
+                let mergedEntities = response.data.filter(entity => entity.prefer == null);
+
+                mergedEntities.forEach(entity => {
+                    entity.mergedEntities = response.data.filter(mergedEntity => mergedEntity.prefer == entity.id);
+
+                    // This adds the related entities counts to the preffered entity count
+                    if (entity.mergedEntities.length > 0) {
+                        entity.mergedEntities.forEach(mergedEntity => {
+                            entity.entity_count += mergedEntity.entity_count;
+                        })
+                    }
+                })
+
+
+
                 self.setState(
                     { 
-                        entities: response.data,
+                        entities: mergedEntities,
                         entitiesLoading: false 
                     })
             })
@@ -364,6 +392,13 @@ export class ProjectView extends React.Component {
         }
     }
 
+    mergedEntities = () => {
+        let self = this;
+        self.setState({alert: {show: true, variant: 'success', message: 'Entities Merged'}});
+        self.getEntities();
+    }
+        
+
     selectProject = (e) => {
         let self = this;
         e.target.value == 'all' ? self.setState({selectedProject: undefined}) : self.setState({selectedProject: self.state.projects.find((project) => project.id == e.target.value)});
@@ -386,6 +421,7 @@ export class ProjectView extends React.Component {
                 showExtractionDetails: form == 'extractionDetails' ? true : false,
                 showProjectDetails: form == 'projectDetails' ? true : false,
                 showEntityEdit: form == 'editEntity' ? true : false,
+                showMergeEntity: form == 'mergeEntity' ? true : false
             }
         );
     }
@@ -485,7 +521,7 @@ export class ProjectView extends React.Component {
                                     }
                                 </Form.Select>
                                 <DropdownButton variant="primary" title="Do Something" size="sm" className="d-inline-block mx-1" disabled={this.state.selectedEntitiesRows.length == 0 ? true : false}>
-                                    <Dropdown.Item disabled={this.state.selectedEntitiesRows.length < 2 ? true : false} onClick={() => this.entityAction('merge')}>Merge Entities</Dropdown.Item>
+                                    <Dropdown.Item disabled={this.state.selectedEntitiesRows.length < 2 ? true : false} onClick={() => this.showModal('mergeEntity')}>Merge Entities</Dropdown.Item>
                                     <Dropdown.Item onClick={() => this.entityAction('delete')}>{this.state.selectedEntitiesRows.length > 1 ? 'Delete Entities' : 'Delete Entity' }</Dropdown.Item>
                                     <Dropdown.Item disabled={this.state.selectedEntitiesRows.length > 1 ? true : false} onClick={() => this.showModal('editEntity')}>Edit Entity</Dropdown.Item>
                                 </DropdownButton>
@@ -502,7 +538,7 @@ export class ProjectView extends React.Component {
                                 highlightOnHover={true}
                                 selectableRows
                                 expandableRows={true}
-                                expandableRowsComponent={row => {return <EntityPages entity={row} project={this.state.selectedProject.id}/>}}
+                                expandableRowsComponent={row => {return <EntityPages entity={row} project={ this.state.selectedProject.id}/>}}
                                 onSelectedRowsChange={this.selectEntitiesRows}
                                 progressPending={this.state.entitiesLoading}
                                 pagination={true}
@@ -517,7 +553,7 @@ export class ProjectView extends React.Component {
                
                <Modal centered show={this.state.showModal} onHide={() => this.setState({showModal: false})}>
                     <Modal.Header closeButton>
-                        <Modal.Title>{this.state.showUpload ? 'Upload Documents' : this.state.showProject ? 'Edit Project' : this.state.showExtract ? 'Start Extraction' : this.state.showMoveDoc ? 'Move Document' : this.state.showExtractionDetails ? 'Extraction Details' : this.state.showProjectDetails ? 'Project Details' : this.state.showEntityEdit ? 'Edit Entity' : ''}</Modal.Title>
+                        <Modal.Title>{this.state.showUpload ? 'Upload Documents' : this.state.showProject ? 'Edit Project' : this.state.showExtract ? 'Start Extraction' : this.state.showMoveDoc ? 'Move Document' : this.state.showExtractionDetails ? 'Extraction Details' : this.state.showProjectDetails ? 'Project Details' : this.state.showEntityEdit ? 'Edit Entity' : this.state.showMergeEntity ? 'Merge Entities' : ''}</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
                         { this.state.showUpload && <Upload project={this.state.selectedProject} onHide={() => this.setState({showModal: false})} onGetDocs={() => this.getDocs()} /> }
@@ -531,6 +567,8 @@ export class ProjectView extends React.Component {
                         { this.state.showProjectDetails && <ProjectDetails onHide={() => this.setState({showModal: false})} project={this.state.selectedProject} /> }
                     
                         { this.state.showEntityEdit && <EditEntity onHide={() => this.setState({showModal: false})} entity={this.state.selectedEntitiesRows} onGetEntities={() => this.getEntities()} onResetSelectedRows={() => this.resetSelectedRows()}/> }
+
+                        { this.state.showMergeEntity && <MergeEntity onHide={() => this.setState({showModal: false})} entities={this.state.selectedEntitiesRows} onMerge={() => this.mergedEntities()} /> }
                     </Modal.Body>
                     
                 </Modal>
