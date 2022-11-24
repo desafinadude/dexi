@@ -20,9 +20,14 @@ import Breadcrumb from 'react-bootstrap/Breadcrumb';
 import Form from 'react-bootstrap/Form';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
+import Badge from 'react-bootstrap/Badge';
+import Modal from 'react-bootstrap/Modal';
 
 import TagCloud from 'react-tag-cloud';
 
+import { DocEntityPages } from '../components/DocEntityPages';
+import { MergeEntity } from '../components/MergeEntity';
+import { EditEntity } from '../components/EditEntity';
 
 import { ReflexContainer, ReflexSplitter, ReflexElement } from 'react-reflex'
 
@@ -37,7 +42,7 @@ import parse from "html-react-parser";
 import { Document, Page } from 'react-pdf/dist/esm/entry.parcel2';
 
 import Icon from '@mdi/react';
-import { mdiCalendarMonth, mdiFile, mdiFolder, mdiInformation } from '@mdi/js';
+import { mdiCalendarMonth, mdiConsoleNetwork, mdiConsoleNetworkOutline, mdiFile, mdiFolder, mdiInformation } from '@mdi/js';
 import { setFlagsFromString } from 'v8';
 
 function withParams(Component) {
@@ -86,6 +91,17 @@ export class DocView extends React.Component {
                     maxWidth: '120px',
                     sortable: true
                 },
+                {
+                    name: 'Merged',
+                    selector: row => row.mergedEntities.length,
+                    cell: row => row.mergedEntities.length > 0 ? <OverlayTrigger placement="top" overlay={
+                        <Tooltip>{row.mergedEntities.map((entity,index) => entity.entity).join(', ')}</Tooltip>
+                    }><Badge>{row.mergedEntities.length}</Badge>
+                    </OverlayTrigger> : '',
+                    maxWidth: '100px',
+                    center: true,
+                    sortable: true
+                }
             ],
             loading: true,
             project: {},
@@ -135,14 +151,9 @@ export class DocView extends React.Component {
             ],
             selectedSchemas: [],
             selectedEntitiesRows: [],
-            cloud: [
-                { text: 'Hey', value: 10 },
-                { text: 'lol', value: 55 },
-                { text: 'first impression', value: 5 },
-                { text: 'very cool', value: 1 },
-                { text: 'duck', value: 2 },
-            ]
-            
+            showModal: false,
+            showEntityEdit: false,
+            showMergeEntity: false
         }
         
     }
@@ -242,11 +253,13 @@ export class DocView extends React.Component {
 
         let highlightedText = self.state.text;
 
-        self.state.extractionEntities.forEach((entity) => {
+        self.state.highlightEntities.forEach((entity) => {
 
             let regex = new RegExp(`(?<!>)(${entity.entity})(?!<)`, 'g');
 
-            highlightedText = highlightedText.replaceAll(regex, '<span class="highlight highlight-' + entity.schema + '">' + entity.entity + '</span>');
+            let preferredSchema = entity.preferredSchema ? entity.preferredSchema : entity.schema;
+
+            highlightedText = highlightedText.replaceAll(regex, '<span class="highlight highlight-' + preferredSchema + '">' + entity.entity + '</span>');
         })
 
         self.setState({highlightedText: highlightedText});
@@ -284,6 +297,7 @@ export class DocView extends React.Component {
 
                 self.setState({entities: response.data}, () => self.filterEntitiesByExtraction());
 
+
             })
             .catch((error) => {
                 console.log(error);
@@ -297,9 +311,93 @@ export class DocView extends React.Component {
 
         let extractionEntities = self.state.entities.filter(e => parseInt(e.extraction_id) === parseInt(self.state.selectedExtraction));
 
+        let entityIds = [];
+        
+
+        for (var i=extractionEntities.length-1; i>=0; i--){
+            let entity = extractionEntities[i];
+            let index = i
+       
+
+            entity.id = entity.entity_id;
+            entity.pages = [];
+            entity.pages.push(entity.page)
+
+            if(entityIds.includes(entity.entity_id)) {
+
+                // this entity has already been added to the array, so we need to merge it with the existing entity and then remove it
+                let existingEntity = extractionEntities.find(e => e.entity_id === entity.entity_id);
+                existingEntity.entity_count = parseInt(existingEntity.entity_count) + parseInt(entity.entity_count);
+            
+                // add the page to the existing entity if it doesn't already exist
+                if(!existingEntity.pages.includes(entity.page)) {
+                    existingEntity.pages.push(entity.page);
+                }
+
+                // Sort the pages
+                existingEntity.pages.sort((a, b) => a - b);
+
+                // This is why we're looping in reverse - we need to remove the entity from the array
+                extractionEntities.splice(index, 1);
+
+
+            } else {
+                entityIds.push(entity.entity_id);
+            }
+             
+        }
+
+        
+        
+
+
+        let mergedEntities = extractionEntities.filter(entity => entity.prefer == null);
+
+        mergedEntities.forEach(entity => {
+            entity.mergedEntities = extractionEntities.filter(mergedEntity => mergedEntity.prefer == entity.entity_id);
+
+            // This adds the related entities counts to the preffered entity count
+            if (entity.mergedEntities.length > 0) {
+                entity.mergedEntities.forEach(mergedEntity => {
+                    entity.entity_count += mergedEntity.entity_count;
+                    
+                    mergedEntity.pages.forEach(page => {
+                        if(!entity.pages.includes(page)) {
+                            entity.pages.push(page);
+                        }
+                    })
+
+                    entity.pages.sort((a, b) => a - b);
+
+
+                    
+                })
+            }
+        })
+
+        let flatEntities = [];
+
+        let mergedEntitiesWork = [...mergedEntities];
+
+        mergedEntitiesWork.forEach(entity => {
+            flatEntities.push(entity);
+            entity.mergedEntities.forEach(mergedEntity => {
+                mergedEntity.preferredSchema = entity.schema;
+                flatEntities.push(mergedEntity);
+            })
+            
+        })
+
+        console.log(flatEntities);
+
+
+
+
+
         self.setState(
             {
-                extractionEntities: extractionEntities,
+                extractionEntities: mergedEntities,
+                highlightEntities: flatEntities,
                 loading: false
             },
             () => {
@@ -307,8 +405,6 @@ export class DocView extends React.Component {
                 self.highlightText()
             }
         );
-
-        
     }
 
     setCloud = () => {
@@ -369,6 +465,22 @@ export class DocView extends React.Component {
                 })
 
         }
+    }
+
+    mergedEntities = () => {
+        let self = this;
+        self.setState({alert: {show: true, variant: 'success', message: 'Entities Merged'}});
+        self.getEntities();
+    }
+
+    showModal(form) {
+        this.setState(
+            {   
+                showModal: true, 
+                showEntityEdit: form == 'editEntity' ? true : false,
+                showMergeEntity: form == 'mergeEntity' ? true : false
+            }
+        );
     }
     
     
@@ -454,7 +566,8 @@ export class DocView extends React.Component {
                                                         }
                                                     </Form.Select>
                                                     <DropdownButton variant="primary" title="Do Something" size="sm" className="d-inline-block mx-1" disabled={this.state.selectedEntitiesRows.length == 0 ? true : false}>
-                                                        <Dropdown.Item onClick={() => this.entityAction('merge')}>Merge Entities</Dropdown.Item>
+                                                        <Dropdown.Item disabled={this.state.selectedEntitiesRows.length < 2 ? true : false} onClick={() => this.showModal('mergeEntity')}>Merge Entities</Dropdown.Item>
+                                                        <Dropdown.Item disabled={this.state.selectedEntitiesRows.length > 1 ? true : false} onClick={() => this.showModal('editEntity')}>Edit Entity</Dropdown.Item>
                                                         <Dropdown.Item onClick={() => this.entityAction('delete')}>Delete Entity</Dropdown.Item>
                                                     </DropdownButton>
                                                 </Col>
@@ -467,6 +580,8 @@ export class DocView extends React.Component {
                                                     progressPending={this.state.loading}
                                                     selectableRows={true}
                                                     onSelectedRowsChange={this.selectEntitiesRows}
+                                                    expandableRows={true}
+                                                    expandableRowsComponent={row => <DocEntityPages entity={row.data}/>}
                                                 />
                     
                                         </div>
@@ -504,6 +619,18 @@ export class DocView extends React.Component {
                     
                     
                 </Container>
+
+                <Modal centered show={this.state.showModal} onHide={() => this.setState({showModal: false})}>
+                    <Modal.Header closeButton>
+                        <Modal.Title>{this.state.showEntityEdit ? 'Edit Entity' : this.state.showMergeEntity ? 'Merge Entities' : ''}</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        { this.state.showEntityEdit && <EditEntity onHide={() => this.setState({showModal: false})} entity={this.state.selectedEntitiesRows} onGetEntities={() => this.getEntities()} /> }
+
+                        { this.state.showMergeEntity && <MergeEntity onHide={() => this.setState({showModal: false})} entities={this.state.selectedEntitiesRows} onMerge={() => this.mergedEntities()} /> }
+                    </Modal.Body>
+                    
+                </Modal>
                 
                
             </>

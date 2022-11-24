@@ -99,6 +99,7 @@ class EntityRawQuerySerializer(serializers.Serializer):
     entity = serializers.SerializerMethodField()
     schema = serializers.SerializerMethodField()
     extraction = serializers.SerializerMethodField()
+    prefer = serializers.SerializerMethodField()
     entity_count = serializers.SerializerMethodField()
     doc_count = serializers.SerializerMethodField()
 
@@ -114,11 +115,14 @@ class EntityRawQuerySerializer(serializers.Serializer):
     def get_extraction(self, obj):
         return obj[3]
 
-    def get_entity_count(self, obj):
+    def get_prefer(self, obj):
         return obj[4]
 
-    def get_doc_count(self, obj):
+    def get_entity_count(self, obj):
         return obj[5]
+
+    def get_doc_count(self, obj):
+        return obj[6]
 
 
 
@@ -140,7 +144,9 @@ class EntityFoundRawQuerySerializer(serializers.Serializer):
     entity = serializers.SerializerMethodField()
     schema = serializers.SerializerMethodField()
     extraction_id = serializers.SerializerMethodField()
+    prefer = serializers.SerializerMethodField()
     entity_count = serializers.SerializerMethodField()
+    page = serializers.SerializerMethodField()
 
     def get_entity_id(self, obj):
         return obj[0]
@@ -154,8 +160,14 @@ class EntityFoundRawQuerySerializer(serializers.Serializer):
     def get_extraction_id(self, obj):
         return obj[3]
 
-    def get_entity_count(self, obj):
+    def get_prefer(self, obj):
         return obj[4]
+
+    def get_entity_count(self, obj):
+        return obj[5]
+
+    def get_page(self, obj):
+        return obj[6]
     
     
 

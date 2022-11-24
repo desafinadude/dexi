@@ -5,6 +5,7 @@ import Navbar from 'react-bootstrap/Navbar';
 import Button from 'react-bootstrap/Button';
 import Dropdown from 'react-bootstrap/Dropdown';
 import NavDropdown from 'react-bootstrap/NavDropdown';
+import Badge from 'react-bootstrap/Badge';
 import { isTokenSet, logout } from '../utils/utils';
 
 export class Header extends React.Component {
@@ -22,8 +23,9 @@ export class Header extends React.Component {
 
             <Navbar fixed="top" expand="lg" bg="white" className="shadow-sm">
                 <Container>
-                    <Navbar.Brand href="/">
+                    <Navbar.Brand href="/" className="position-relative">
                         <img width="80" src="/Dexi.png"/>
+                        <div style={{fontSize: '12px', position: 'absolute', right: '-35px', top: '18px'}}><Badge pill bg="info">BETA</Badge></div>
                     </Navbar.Brand>
                     <Nav defaultActiveKey="/" className="fw-light">
                         { !isTokenSet() ? 

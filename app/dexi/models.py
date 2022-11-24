@@ -67,6 +67,7 @@ class Entity(BaseModel):
     entity = models.CharField(max_length = 180)
     schema = models.CharField(max_length = 180, null = True)
     extraction = models.ForeignKey(Extraction, on_delete=models.CASCADE, null = True)
+    prefer = models.ForeignKey('self', null = True, blank = True, on_delete=models.CASCADE, related_name='+')
 
     def __str__(self):
         return self.entity
