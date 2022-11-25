@@ -145,13 +145,13 @@ export class SignUp extends React.Component {
                                     <Card.Body>
                                         <h4 className="text-center mb-5">Sign Up</h4>
                                         <Form onSubmit={this.onFormSubmit}>
-                                            <Form.Control size="sm" type="email" placeholder="E-mail" name="email" required className={this.state.errors.email.length > 0 ? 'border-danger mt-2' : 'mt-2'} disabled={this.state.validating}/>
+                                            <Form.Control size="sm" type="email" placeholder="E-mail" name="email" required className={this.state.errors.email.length > 0 ? 'border-danger mt-2' : 'mt-2'} disabled={this.state.busy}/>
                                             {this.state.errors.email.map((error,index) => <small className="text-danger" key={index}>{error}</small>)}
-                                            <Form.Control size="sm" type="password" placeholder="Password" name="password1" className={this.state.errors.password1.length > 0 ? 'border-danger mt-2' : 'mt-2'} required disabled={this.state.validating}/>
+                                            <Form.Control size="sm" type="password" placeholder="Password" name="password1" className={this.state.errors.password1.length > 0 ? 'border-danger mt-2' : 'mt-2'} required disabled={this.state.busy}/>
                                             {this.state.errors.password1.map((error,index) => <small className="text-danger" key={index}>{error}</small>)}
-                                            <Form.Control size="sm" type="password" placeholder="Repeat Password" name="password2" className={this.state.errors.password2.length > 0 ? 'border-danger mt-2' : 'mt-2'}required disabled={this.state.validating}/>
+                                            <Form.Control size="sm" type="password" placeholder="Repeat Password" name="password2" className={this.state.errors.password2.length > 0 ? 'border-danger mt-2' : 'mt-2'}required disabled={this.state.busy}/>
                                             {this.state.errors.password2.map((error,index) => <small className="text-danger" key={index}>{error}</small>)}
-                                            <Button size="sm" type="submit" className="mt-3 more-rounded text-white" variant="secondary" disabled={this.state.validating}>{this.state.validating ? 'Submitting' : 'Sign Up' }</Button>
+                                            <Button size="sm" type="submit" className="mt-3 more-rounded text-white" variant="secondary" disabled={this.state.busy}>{this.state.busy ? 'Submitting' : 'Sign Up' }</Button>
                                         </Form>
                                     </Card.Body>
                                 </Card>
