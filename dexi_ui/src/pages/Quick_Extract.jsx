@@ -177,7 +177,7 @@ export class QuickExtract extends React.Component {
                                         <Form onSubmit={this.onFormSubmit}>
                                             <Row className="mb-2">
                                                 <Col>
-                                                    <Form.Control type="text" name="url" placeholder="URL" />
+                                                    <Form.Control type="text" name="url" placeholder="URL to a text file" />
                                                 </Col>
                                                 <Col sm="auto">
                                                     <Button variant="primary" type="submit">Extract</Button>
