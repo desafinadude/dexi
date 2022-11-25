@@ -88,7 +88,7 @@ export class SignUp extends React.Component {
     submitForm = (formDataObj) => {
         var newFormData = new FormData();
 
-        newFormData.append("username", formDataObj.username);
+        newFormData.append("username", formDataObj.email);
         newFormData.append("email", formDataObj.email);
         newFormData.append("password1", formDataObj.password1);
         newFormData.append("password2", formDataObj.password2);
@@ -101,15 +101,11 @@ export class SignUp extends React.Component {
         }).catch((error) => {
 
             let errors = {
-                username: [],
                 email: [],
                 password1: [],
                 password2: []
             }
-
-            if(error.response.data.username) {
-                errors.username.push(error.response.data.username);
-            }
+            
             if(error.response.data.email) {
                 errors.email.push(error.response.data.email);
             }
@@ -149,8 +145,6 @@ export class SignUp extends React.Component {
                                     <Card.Body>
                                         <h4 className="text-center mb-5">Sign Up</h4>
                                         <Form onSubmit={this.onFormSubmit}>
-                                            <Form.Control size="sm" type="text" placeholder="Username" name="username" required className={this.state.errors.username.length > 0 && 'border-danger'}/>
-                                            {this.state.errors.username.map((error,index) => <small className="text-danger" key={index}>{error}</small>)}
                                             <Form.Control size="sm" type="email" placeholder="E-mail" name="email" required className={this.state.errors.email.length > 0 ? 'border-danger mt-2' : 'mt-2'}/>
                                             {this.state.errors.email.map((error,index) => <small className="text-danger" key={index}>{error}</small>)}
                                             <Form.Control size="sm" type="password" placeholder="Password" name="password1" className={this.state.errors.password1.length > 0 ? 'border-danger mt-2' : 'mt-2'} required/>
