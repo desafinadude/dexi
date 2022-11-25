@@ -48,8 +48,7 @@ export class Login extends React.Component {
             document.cookie = "dexitoken=" + response.data.key;
             window.location.href = "/project";
         }).catch((error) => {
-            console.log(error);
-            this.setState({valid: false, error: error.response.data.non_field_errors[0]});
+            this.setState({valid: false, error: error.response.data.non_field_errors[0], busy: false});
         });
 
     }
