@@ -14,7 +14,7 @@ export class SignUp extends React.Component {
         super();
         this.state = {
             tokenSet: false,
-            validated: false,
+            busy: false,
             errors: {
                 username: [],
                 email: [],
@@ -39,12 +39,13 @@ export class SignUp extends React.Component {
 
         e.preventDefault();
 
+        self.setState({busy: true})
+
         const formData = new FormData(e.target), formDataObj = Object.fromEntries(formData.entries());
 
         const form = e.currentTarget;
 
         let errors = {
-            username: [],
             email: [],
             password1: [],
             password2: []
@@ -52,9 +53,7 @@ export class SignUp extends React.Component {
 
         this.setState({errors: errors});
 
-        if(formDataObj.username.length < 3) {
-            errors.username.push('Username must be at least 3 characters long');
-        }
+        
 
         if(!formDataObj.email.includes('@')) {
             errors.email.push('Email is not valid');
@@ -68,19 +67,18 @@ export class SignUp extends React.Component {
         }
             
         if (
-            errors.username.length == 0 && 
             errors.email.length == 0 && 
             errors.password1.length == 0 && 
             errors.password2.length == 0) {
                 
-                this.setState({validated: true}, 
+                this.setState({busy: true}, 
                     () => {
                         this.submitForm(formDataObj)
                     }
                 );
             
             } else {
-                this.setState({errors: errors, validated: false});
+                this.setState({errors: errors, busy: false});
             }
 
     }
@@ -96,7 +94,7 @@ export class SignUp extends React.Component {
         axios.post(process.env.API + '/dj-rest-auth/registration/', newFormData)
         .then((response) => {
             if(response.status === 201) {
-                this.setState({registerSuccess: true});
+                this.setState({registerSuccess: true, busy: false});
             }
         }).catch((error) => {
 
@@ -116,7 +114,7 @@ export class SignUp extends React.Component {
                 errors.password2.push(error.response.data.password2);
             }
 
-            this.setState({errors: errors});
+            this.setState({errors: errors, busy: false});
         });
     }
 
@@ -145,13 +143,13 @@ export class SignUp extends React.Component {
                                     <Card.Body>
                                         <h4 className="text-center mb-5">Sign Up</h4>
                                         <Form onSubmit={this.onFormSubmit}>
-                                            <Form.Control size="sm" type="email" placeholder="E-mail" name="email" required className={this.state.errors.email.length > 0 ? 'border-danger mt-2' : 'mt-2'}/>
+                                            <Form.Control size="sm" type="email" placeholder="E-mail" name="email" required className={this.state.errors.email.length > 0 ? 'border-danger mt-2' : 'mt-2'} disabled={this.state.validating}/>
                                             {this.state.errors.email.map((error,index) => <small className="text-danger" key={index}>{error}</small>)}
-                                            <Form.Control size="sm" type="password" placeholder="Password" name="password1" className={this.state.errors.password1.length > 0 ? 'border-danger mt-2' : 'mt-2'} required/>
+                                            <Form.Control size="sm" type="password" placeholder="Password" name="password1" className={this.state.errors.password1.length > 0 ? 'border-danger mt-2' : 'mt-2'} required disabled={this.state.validating}/>
                                             {this.state.errors.password1.map((error,index) => <small className="text-danger" key={index}>{error}</small>)}
-                                            <Form.Control size="sm" type="password" placeholder="Repeat Password" name="password2" className={this.state.errors.password2.length > 0 ? 'border-danger mt-2' : 'mt-2'}required/>
+                                            <Form.Control size="sm" type="password" placeholder="Repeat Password" name="password2" className={this.state.errors.password2.length > 0 ? 'border-danger mt-2' : 'mt-2'}required disabled={this.state.validating}/>
                                             {this.state.errors.password2.map((error,index) => <small className="text-danger" key={index}>{error}</small>)}
-                                            <Button size="sm" type="submit" className="mt-3 more-rounded text-white" variant="secondary">Sign Up</Button>
+                                            <Button size="sm" type="submit" className="mt-3 more-rounded text-white" variant="secondary" disabled={this.state.validating}>{this.state.validating ? 'Submitting' : 'Sign Up' }</Button>
                                         </Form>
                                     </Card.Body>
                                 </Card>
