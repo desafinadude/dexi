@@ -7,20 +7,24 @@ import Dropdown from 'react-bootstrap/Dropdown';
 import NavDropdown from 'react-bootstrap/NavDropdown';
 import Badge from 'react-bootstrap/Badge';
 import { isTokenSet, logout } from '../utils/utils';
+import Modal from 'react-bootstrap/Modal';
+import { Help } from './Help';
 
 export class Header extends React.Component {
 
 
     constructor(){
         super();
-        this.state = {}
+        this.state = {
+            showModal: false
+        }
     }
 
     componentDidMount() {}
 
     render() {
         return (
-
+            <>
             <Navbar fixed="top" expand="lg" bg="white" className="shadow-sm">
                 <Container>
                     <Navbar.Brand href="/" className="position-relative">
@@ -48,6 +52,9 @@ export class Header extends React.Component {
                                 <Nav.Item className="me-3">
                                     <Nav.Link href="/reference">References</Nav.Link>
                                 </Nav.Item>
+                                <Nav.Item className="me-3">
+                                    <Nav.Link onClick={() => this.setState({showModal:true})}>Help</Nav.Link>
+                                </Nav.Item>
                                 <NavDropdown title="User">
                                     <NavDropdown.Divider />
                                     <NavDropdown.Item onClick={() => logout()}>Logout</NavDropdown.Item>
@@ -57,7 +64,15 @@ export class Header extends React.Component {
                     </Nav>
                 </Container>
             </Navbar>
-
+            <Modal centered show={this.state.showModal} onHide={() => this.setState({showModal: false})} size="lg">
+                <Modal.Header closeButton>
+                    <Modal.Title>Dexi Quick Help</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Help/>
+                </Modal.Body>
+            </Modal>
+            </>
         )
     }
 
