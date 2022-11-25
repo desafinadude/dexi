@@ -37,6 +37,8 @@ export class SignUp extends React.Component {
 
     onFormSubmit = (e) => {
 
+        let self = this;
+
         e.preventDefault();
 
         self.setState({busy: true})
