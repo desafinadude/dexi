@@ -302,7 +302,7 @@ export class ProjectView extends React.Component {
                     self.setState({alert: {show: true, variant: 'danger', message: 'Some documents are already converted'}});
                 }  else {
 
-                    self.setState({alert: {show: true, variant: 'success', message: 'Converting your documents to text. This can take a while.'}});
+                    self.setState({alert: {show: true, variant: 'success', message: 'Converting your documents to text. This can take a while. Use the table refresh button to check the status. And feel free to leave this page.'}});
 
 
                     var newFormData = new FormData();
