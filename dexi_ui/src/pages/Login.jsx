@@ -14,7 +14,8 @@ export class Login extends React.Component {
         super();
         this.state = {
             valid: true,
-            error: ''
+            error: '',
+            busy: false
         }
         
     }
@@ -29,7 +30,11 @@ export class Login extends React.Component {
 
     onFormSubmit = (e) => {
 
+        let self = this;
+
         e.preventDefault();
+
+        self.setState({busy: true});
 
         const formData = new FormData(e.target), formDataObj = Object.fromEntries(formData.entries());
         
@@ -59,10 +64,10 @@ export class Login extends React.Component {
                             <Card.Body>
                                 <h4 className="text-center mb-5">Login</h4>
                                 <form onSubmit={this.onFormSubmit}>
-                                    <Form.Control size="sm" type="text" placeholder="Username" name="username" className="mb-2" required/>
-                                    <Form.Control size="sm" type="password" placeholder="Password" name="password" required/>
+                                    <Form.Control size="sm" type="text" placeholder="E-mail" name="username" className="mb-2" required disabled={this.state.busy}/>
+                                    <Form.Control size="sm" type="password" placeholder="Password" name="password" required disabled={this.state.busy}/>
                                     {!this.state.valid && <small className="mt-3 text-danger d-block">{this.state.error}</small>}
-                                    <Button size="sm" type="submit" className="mt-3 more-rounded text-white" variant="secondary">Login</Button>
+                                    <Button size="sm" type="submit" className="mt-3 more-rounded text-white" variant="secondary" disabled={this.state.busy}>{this.state.busy ? 'Submitting' : 'Login' }</Button>
                                 </form>
                             </Card.Body>
                         </Card>
