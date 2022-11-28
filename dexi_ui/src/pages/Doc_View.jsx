@@ -327,6 +327,9 @@ export class DocView extends React.Component {
 
                 // this entity has already been added to the array, so we need to merge it with the existing entity and then remove it
                 let existingEntity = extractionEntities.find(e => e.entity_id === entity.entity_id);
+                if(existingEntity.pages == undefined) {
+                    existingEntity.pages = [];
+                }
                 existingEntity.entity_count = parseInt(existingEntity.entity_count) + parseInt(entity.entity_count);
             
                 // add the page to the existing entity if it doesn't already exist
