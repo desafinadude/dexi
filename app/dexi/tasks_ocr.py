@@ -33,25 +33,33 @@ from natsort import natsorted
 
 from .models import Doc
 from .serializers import DocSerializer
+from sse_wrapper.events import send_event
+
 
 s3 = boto3.client('s3', aws_access_key_id=settings.AWS_ACCESS_KEY_ID , aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
 
 @shared_task
-def doc_ocr(doc_id):
+def doc_ocr(doc_id, user):
 
-    print('Worker conversion task here...ready')
+
+    
+    message = 'Worker conversion task here...ready'
+    send_event(user, message, 'notifications')
+    print(message)
 
     doc = Doc.objects.get(pk=doc_id)
 
     if doc.status == 1:
 
-        # TODO: Why not write these to a file's log? That could be a useful feature.
-
-        print('Starting OCR on doc: ' + str(doc_id))
+        message = 'Starting OCR on doc: ' + str(doc_id)
+        send_event(user, message, 'notifications')
+        print(message)
 
         if doc.type == 'application/pdf':
 
-            print("It's a PDF")
+            message = "Found a PDF"
+            send_event(user, message, 'notifications')
+            print(message)
         
             # Setting document status to "CONVERTING"
             data = {
@@ -82,11 +90,13 @@ def doc_ocr(doc_id):
                 with open(destination + output_filename, 'wb') as out:
                     pdf_writer.write(out)
 
-                print('Created: {}'.format(output_filename))
+                message = 'Created page ' + str(page + 1) + ' of ' + str(pdf.getNumPages())
+                send_event(user, message, 'notifications')
+                print(message)
             
             # For every pdf file in folder, convert to txt
             for filename in glob.glob(destination + '*dexipage*.pdf'):
-                converted = convert(filename, filename + '.txt')
+                converted = convert(filename, filename + '.txt', user)
 
             with open(destination + str(doc.file) + '.txt', 'w') as outfile:
                 for txtfile in natsorted(glob.glob(destination + '*dexipage*.txt')):
@@ -111,7 +121,9 @@ def doc_ocr(doc_id):
 
         elif doc.type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' or doc.type == 'application/msword' or doc.type == 'application/vnd.oasis.opendocument.text' or doc.type == 'application/rtf':
                 
-                print("It's a Doc")
+                message = 'Found a Doc'
+                send_event(user, message, 'notifications')
+                print(message)
     
                 # Setting document status to "CONVERTING"
                 data = {
@@ -125,6 +137,10 @@ def doc_ocr(doc_id):
                 s3.download_file(settings.AWS_STORAGE_BUCKET_NAME, str(doc.file), '/tmp/' + str(doc.file))
                 pypandoc.convert_file('/tmp/' + str(doc.file), 'plain', outputfile='/tmp/' + str(doc.file) + '.txt')
     
+                message = 'Upload to S3'
+                send_event(user, message, 'notifications')
+                print(message)
+
                 # Upload converted file to S3
                 s3.upload_file('/tmp/' + str(doc.file) + '.txt', settings.AWS_STORAGE_BUCKET_NAME, str(doc.file) + '.txt')
                 response = s3.put_object_acl(ACL='public-read', Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key="%s" % (str(doc.file) + '.txt'))
@@ -139,7 +155,9 @@ def doc_ocr(doc_id):
 
         elif doc.type == 'text/plain':
                 
-                print("It's plain text")
+                message = 'Found a Plain Text File'
+                send_event(user, message, 'notifications')
+                print(message)
     
                 # Setting document status to "CONVERTED"
                 data = {
@@ -150,13 +168,15 @@ def doc_ocr(doc_id):
                     serializer.save()
 
 
-def convert(sourcefile, destination_file):
+def convert(sourcefile, destination_file, user):
     print(sourcefile, destination_file)
     text = extract_tesseract(sourcefile)
     with open(destination_file, 'w', encoding='utf-8') as f_out:
         f_out.write(text)
-    print()
-    print('Converted ' + sourcefile)
+    
+    message = 'Converted ' + sourcefile
+    send_event(user, message, 'notifications')
+    print(message)
     
     return True
 

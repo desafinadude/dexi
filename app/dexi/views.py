@@ -13,6 +13,10 @@ from django.db.models.functions import Lower
 from django.core.paginator import Paginator
 from django.db.models import Count, OuterRef, Subquery, Q
 from django.db import connection
+import redis
+from sse_wrapper.events import send_event
+
+from sse_wrapper.views import EventStreamView
 
 from .models import Project, Doc, Extraction, Entity, EntityFound, Reference
 from .serializers import ProjectSerializer, ProjectPermissionSerializer, DocSerializer, DocRawQuerySerializer, ExtractionSerializer, EntitySerializer, EntityRawQuerySerializer, EntityFoundSerializer, EntityFoundRawQuerySerializer, ReferenceSerializer
@@ -30,15 +34,14 @@ class DocListApiView(APIView):
     authentication_classes = [authentication.TokenAuthentication]
 
     def get(self, request, *args, **kwargs):
-
-        
-
-
         cursor = connection.cursor()
         cursor.execute('select q3.did, q3.name, q3.type, q3.status, q3.created_at, q3.project_id, count(distinct q3.extraction_id) as extraction_count from (select q1.did, q1.name, q1.type, q1.status, q1.created_at, q1.project_id, de.extraction_id from (select dd.id as did, dd.name, dd.type, dd.status, dd.project_id, dd.created_at, def.entity_id from dexi_doc as dd left join dexi_entityfound as def ON def.doc_id = dd.id where dd.project_id = %s) as q1 left join dexi_entity as de on de.id = q1.entity_id group by de.extraction_id, q1.did, q1.name, q1.type, q1.status, q1.created_at, q1.project_id) as q3 group by q3.did, q3.name, q3.type, q3.status, q3.created_at, q3.project_id',  [kwargs['project_id']])
         res = cursor.fetchall()
         serializer = DocRawQuerySerializer(res, many=True)
+        message = "heyheyhey"
+        send_event(request.user.id, message, 'notifications')
         return Response(serializer.data, status=status.HTTP_200_OK)
+        
     
     def post(self, request, *args, **kwargs):
 
@@ -74,7 +77,7 @@ class DocListApiView(APIView):
             docs = docs.values(*field_name_list)
             
             for doc in docs:
-                ocr = doc_ocr(doc['id'])
+                ocr = doc_ocr(doc['id'],request.user.id)
 
             return Response('Sent to worker for conversion', status=status.HTTP_200_OK)
 
@@ -432,3 +435,22 @@ class QuickExtractApiView(APIView):
         extract = url_extract_quick(request.data.get('url'))
 
         return Response(extract, status=status.HTTP_200_OK)
+
+class NotificationListApiView(APIView):
+
+    # This is not a bad option - keep for later
+    # Will require polling - which is what I hope SSE will avoid.
+
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [authentication.TokenAuthentication]
+
+    def get(self, request, *args, **kwargs):
+        r = redis.Redis(host='redis', port=6379, db=0)
+        response = r.get('foo')
+        return Response(response, status=status.HTTP_200_OK)
+
+    def post(self, request, *args, **kwargs):
+        r = redis.Redis(host='redis', port=6379, db=0)
+        r.mset({'foo': 'bar', 'baz': 'qux'})
+        return Response('SET', status=status.HTTP_200_OK)
+

@@ -11,6 +11,7 @@ celery==4.4.1
 celery-flower
 redis==3.4.1
 psycopg2-binary
+django-sse-wrapper
 # Misc
 numpy
 natsort

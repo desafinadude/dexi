@@ -11,8 +11,13 @@ from .views import (
     EntityMergeApiView,
     EntityFoundListApiView,
     ReferenceListApiView,
-    QuickExtractApiView
+    QuickExtractApiView,
+    NotificationListApiView,
 )
+
+from sse_wrapper.views import EventStreamView
+
+
 
 urlpatterns = [
     path('project/', ProjectListApiView.as_view()),
@@ -29,4 +34,6 @@ urlpatterns = [
     path('reference/', ReferenceListApiView.as_view()),
     path('extract/', QuickExtractApiView.as_view()),
     path('extraction/<int:extraction_id>', ExtractionDetailApiView.as_view()),
+    # path('notifications/', NotificationListApiView.as_view()),
+    path('notifications/', EventStreamView.as_view(channel='notifications')),
 ]
