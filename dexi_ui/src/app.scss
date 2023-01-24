@@ -144,3 +144,19 @@ footer {
 .cursor-pointer {
     cursor: pointer;
 }
+
+.notifications-panel {
+    background: rgba(60, 71, 94, 0.8);
+    padding: 1em;
+    bottom: 0px;
+    color: #fff;
+    position: fixed;
+    width: 100%;
+    box-shadow: 0 0px 5px rgba(0,0,0,0.2);
+    z-index: 1000;
+    font-size: 0.9em;
+    max-height: 30vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    
+}

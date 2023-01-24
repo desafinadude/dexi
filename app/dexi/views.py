@@ -1,9 +1,11 @@
 import os
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from django.http import JsonResponse
 from rest_framework import status, permissions, authentication
 from django.contrib.auth.models import User
 from django.contrib import messages
+from django.views import View
 from django.views.generic import ListView
 from django.views.generic.edit import FormView
 from django.shortcuts import redirect
@@ -14,9 +16,11 @@ from django.core.paginator import Paginator
 from django.db.models import Count, OuterRef, Subquery, Q
 from django.db import connection
 import redis
-from sse_wrapper.events import send_event
+import json
+from celery import chord, signature, group
+from .redis import set_redis, get_redis
 
-from sse_wrapper.views import EventStreamView
+
 
 from .models import Project, Doc, Extraction, Entity, EntityFound, Reference
 from .serializers import ProjectSerializer, ProjectPermissionSerializer, DocSerializer, DocRawQuerySerializer, ExtractionSerializer, EntitySerializer, EntityRawQuerySerializer, EntityFoundSerializer, EntityFoundRawQuerySerializer, ReferenceSerializer
@@ -38,10 +42,11 @@ class DocListApiView(APIView):
         cursor.execute('select q3.did, q3.name, q3.type, q3.status, q3.created_at, q3.project_id, count(distinct q3.extraction_id) as extraction_count from (select q1.did, q1.name, q1.type, q1.status, q1.created_at, q1.project_id, de.extraction_id from (select dd.id as did, dd.name, dd.type, dd.status, dd.project_id, dd.created_at, def.entity_id from dexi_doc as dd left join dexi_entityfound as def ON def.doc_id = dd.id where dd.project_id = %s) as q1 left join dexi_entity as de on de.id = q1.entity_id group by de.extraction_id, q1.did, q1.name, q1.type, q1.status, q1.created_at, q1.project_id) as q3 group by q3.did, q3.name, q3.type, q3.status, q3.created_at, q3.project_id',  [kwargs['project_id']])
         res = cursor.fetchall()
         serializer = DocRawQuerySerializer(res, many=True)
-        message = "heyheyhey"
-        send_event(request.user.id, message, 'notifications')
-        return Response(serializer.data, status=status.HTTP_200_OK)
         
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
     
     def post(self, request, *args, **kwargs):
 
@@ -75,10 +80,19 @@ class DocListApiView(APIView):
             selected_docs = request.data.getlist('docs')
             docs = Doc.objects.filter(id__in=selected_docs[0].split(','))
             docs = docs.values(*field_name_list)
-            
-            for doc in docs:
-                ocr = doc_ocr(doc['id'],request.user.id)
 
+            set_redis(request.user.id, 'queue', str(len(docs)))
+
+            
+            def report(result):
+                return result
+
+            
+            r = chord([doc_ocr.s(doc['id'], request.user.id) for doc in docs])(report.si()).get()
+
+            # for doc in docs:
+            #     doc_ocr.s(doc['id'], request.user.id)
+            
             return Response('Sent to worker for conversion', status=status.HTTP_200_OK)
 
         elif request.data.get('action') == 'new':
@@ -98,7 +112,7 @@ class DocListApiView(APIView):
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
-
+            
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -115,25 +129,13 @@ class DocListApiView(APIView):
 
             for doc in docs:
                 if(request.data.get('extractor') == 'nlp'):
-                    extract = doc_extract_nlp(doc['id'], extraction_id, doc['type'])
+                    extract = doc_extract_nlp(doc['id'], extraction_id, doc['type']).delay()
                 else:
-                    extract = doc_extract_reference(doc['id'], extraction_id, doc['type'])
+                    extract = doc_extract_reference(doc['id'], extraction_id, doc['type']).delay()
     
             return Response('Extraction Done - Maybe', status=status.HTTP_200_OK)
 
-        elif request.data.get('action') == 'move':
-                
-            # Move
-            field_name_list = ['id','name','file','type','project','status','user']
-
-            selected_docs = request.data.getlist('docs')
-            docs = Doc.objects.filter(id__in=selected_docs[0].split(','))
-            docs = docs.values(*field_name_list)
-
-            for doc in docs:
-                Doc.objects.filter(id=doc['id']).update(project=request.data.get('project'))
-
-            return Response('Moved', status=status.HTTP_200_OK)
+        
 
         elif request.data.get('action') == 'delete':
                 
@@ -147,6 +149,7 @@ class DocListApiView(APIView):
             for doc in docs:
                 Doc.objects.filter(id=doc['id']).delete()
 
+            
             return Response('Deleted', status=status.HTTP_200_OK)
 
         else:
@@ -186,6 +189,7 @@ class ExtractionDetailApiView(APIView):
     def delete(self, request, *args, **kwargs):
         extraction = Extraction.objects.get(id=kwargs.get('extraction_id'))
         extraction.delete()
+        
         return Response('Deleted', status=status.HTTP_200_OK)
 
 
@@ -213,6 +217,7 @@ class EntityListApiView(APIView):
                 for entity in entities:
                     Entity.objects.filter(id=entity.id).delete()
     
+                
                 return Response('Deleted', status=status.HTTP_200_OK)
 
 class EntityFoundListApiView(APIView):
@@ -242,6 +247,7 @@ class EntityFoundListApiView(APIView):
             entity.schema = request.data.get('schema')
             entity.save()
 
+            
             return Response('Updated', status=status.HTTP_200_OK)
 
 class EntityMergeApiView(APIView):
@@ -264,6 +270,7 @@ class EntityMergeApiView(APIView):
                 entity_object.prefer = preferred_entity_object
                 entity_object.save()
 
+        
         return Response('Merged', status=status.HTTP_200_OK)
 
 class DocDetailApiView(APIView):
@@ -315,6 +322,7 @@ class ProjectListApiView(APIView):
             
             if serializer.is_valid():
                 project = serializer.save()
+                
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
 
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -359,7 +367,7 @@ class ProjectDetailApiView(APIView):
         project.name = request.data.get('name')
         project.description = request.data.get('description')
         project.save()
-
+        
         serializer = ProjectSerializer(project)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -373,6 +381,7 @@ class ProjectDetailApiView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         project_instance.delete()
+        
         return Response({"res": "Project deleted!"}, status=status.HTTP_200_OK)
 
 
@@ -432,25 +441,16 @@ class QuickExtractApiView(APIView):
 
     def post(self, request, *args, **kwargs):
 
-        extract = url_extract_quick(request.data.get('url'))
+        extract = url_extract_quick(request.data.get('url')).delay()
 
         return Response(extract, status=status.HTTP_200_OK)
 
-class NotificationListApiView(APIView):
-
-    # This is not a bad option - keep for later
-    # Will require polling - which is what I hope SSE will avoid.
+class Notifications(APIView):
 
     permission_classes = [permissions.IsAuthenticated]
     authentication_classes = [authentication.TokenAuthentication]
 
     def get(self, request, *args, **kwargs):
         r = redis.Redis(host='redis', port=6379, db=0)
-        response = r.get('foo')
-        return Response(response, status=status.HTTP_200_OK)
-
-    def post(self, request, *args, **kwargs):
-        r = redis.Redis(host='redis', port=6379, db=0)
-        r.mset({'foo': 'bar', 'baz': 'qux'})
-        return Response('SET', status=status.HTTP_200_OK)
-
+        msg = r.mget(['user-' + str(request.user.id),'status-' + str(request.user.id)])
+        return Response(msg, status=status.HTTP_200_OK)

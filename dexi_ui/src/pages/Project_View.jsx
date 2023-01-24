@@ -3,6 +3,8 @@ import axios from 'axios';
 import { isTokenSet, getCookie, schemasLookup, mimeTypeLookup } from '../utils/utils';
 import dayjs from 'dayjs';
 
+import { Link } from 'react-router-dom';
+
 import DataTable, { defaultThemes } from 'react-data-table-component';
 import { Upload } from '../components/Upload';
 import { Project } from '../components/Project';
@@ -55,7 +57,7 @@ export class ProjectView extends React.Component {
                 {
                     name: 'Name',
                     selector: row => row.name,
-                    cell: row => <a className="fw-bold text-decoration-none" href={`/doc/${row.id}?project=${this.state.selectedProject.id}`}>{row.name}</a>
+                    cell: row => <Link className="fw-bold text-decoration-none" to={`/doc/${row.id}?project=${this.state.selectedProject.id}`}>{row.name}</Link>
                 },
                 {
                     name: 'Type',
@@ -161,6 +163,7 @@ export class ProjectView extends React.Component {
             tab: 'docs'
         }
         this.docActionRef = React.createRef();
+        this.link_Home = React.createRef();
         
     }
 
@@ -172,7 +175,7 @@ export class ProjectView extends React.Component {
         if(isTokenSet()) {
             this.setState({tokenSet: true});
         } else {
-            window.location.href='/';
+            self.link_Home.current.click();
         }
         
         self.getProject(projectId);
@@ -187,7 +190,9 @@ export class ProjectView extends React.Component {
             }})
             .then((response) => {
                 self.setState({ selectedProject: response.data }, () => {
-                    self.getDocs();
+                    this.timer = setInterval(() => {
+                        self.getDocs();
+                    }, 5000);
                 })
             })
             .catch((error) => {
@@ -350,7 +355,9 @@ export class ProjectView extends React.Component {
                     "Authorization": "token " + getCookie('dexitoken')
                     }})
                     .then((response) => {
+                        self.getDocs();
                         self.setState({selectedDocsRows: []});
+
                     })
                     .catch((error) => {
                         console.log(error);
@@ -454,6 +461,7 @@ export class ProjectView extends React.Component {
 
     render() {
         return (<section className="py-5" style={{minHeight: '100vh'}}>
+            <Link ref={this.link_Project} to="/" className="d-hidden"></Link>
 
             <Container>
                 <DexiAlert alert={this.state.alert} />
@@ -462,8 +470,8 @@ export class ProjectView extends React.Component {
             <Container>
 
                 <Breadcrumb>
-                    <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
-                    <Breadcrumb.Item href="/project">Projects</Breadcrumb.Item>
+                    <Breadcrumb.Item linkAs="span"><Link to="/">Home</Link></Breadcrumb.Item>
+                    <Breadcrumb.Item linkAs="span"><Link to="/project">Projects</Link></Breadcrumb.Item>
                     <Breadcrumb.Item active>{this.state.selectedProject && this.state.selectedProject.name}</Breadcrumb.Item>
                 </Breadcrumb>
 

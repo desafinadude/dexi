@@ -32,6 +32,8 @@ nlp = spacy.load("en_core_web_sm")
 from .models import Doc, Entity, EntityFound, Extraction
 from .serializers import DocSerializer, EntitySerializer, ExtractionSerializer
 
+from .redis import set_redis
+
 
 s3 = boto3.client('s3', aws_access_key_id=settings.AWS_ACCESS_KEY_ID , aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
 

@@ -2,7 +2,7 @@ import axios from 'axios';
 
 export const getCookie = (name) => {
     let cookies, c;
-    cookies = document.cookie.split(';');
+    cookies = document.cookie.split('; ');
     for (var i=0; i < cookies.length; i++) {
         c = cookies[i].split('=');
         if (c[0] == name) {
@@ -25,15 +25,6 @@ export const isTokenSet = () => {
     if(document.cookie.includes("dexitoken=")) {
         return true;
     }
-}
-
-export const logout = () => {
-       axios.post(process.env.API + '/dj-rest-auth/logout/')
-        .then((response) => {
-            console.log(response);
-            document.cookie = "dexitoken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            window.location.href = "/";
-        })
 }
 
 export const readSearchParams = () => {

@@ -2,6 +2,7 @@ import React from 'react';
 import axios from 'axios';
 import { isTokenSet, getCookie } from '../utils/utils';
 import dayjs from 'dayjs';
+import { Link } from 'react-router-dom';
 
 import DataTable, { defaultThemes } from 'react-data-table-component';
 import { Project } from '../components/Project';
@@ -37,7 +38,7 @@ export class ProjectList extends React.Component {
                 {
                     name: 'Name',
                     selector: row => row.name,
-                    cell: row => <a className="fw-bold text-decoration-none" href={`project/${row.id}`}>{row.name}</a>,
+                    cell: row => <Link className="fw-bold text-decoration-none" to={`/project/${row.id}`}>{row.name}</Link>,
                     sortable: true,
                     
                 },
@@ -133,7 +134,7 @@ export class ProjectList extends React.Component {
             <Container>
 
                 <Breadcrumb>
-                    <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
+                    <Breadcrumb.Item linkAs="span"><Link to="/">Home</Link></Breadcrumb.Item>
                     <Breadcrumb.Item active>Projects</Breadcrumb.Item>
                 </Breadcrumb>
                 

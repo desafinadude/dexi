@@ -7,11 +7,9 @@ django-cors-headers>=3.0.0
 django-storages
 boto3
 importlib-metadata==4.13.0
-celery==4.4.1
-celery-flower
+celery>=5.0
 redis==3.4.1
 psycopg2-binary
-django-sse-wrapper
 # Misc
 numpy
 natsort

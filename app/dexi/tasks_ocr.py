@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from django.utils.crypto import get_random_string
 
 from celery import shared_task
+# from celery.signals import task_postrun, task_prerun, task_success, task_failure
 
 import time
 from random import *
@@ -33,32 +34,28 @@ from natsort import natsorted
 
 from .models import Doc
 from .serializers import DocSerializer
-from sse_wrapper.events import send_event
+from .redis import set_redis, get_redis
 
 
 s3 = boto3.client('s3', aws_access_key_id=settings.AWS_ACCESS_KEY_ID , aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
 
+
+
 @shared_task
 def doc_ocr(doc_id, user):
 
-
+    set_redis(user, 'user', 'Starting Conversion...')
+    set_redis(user, 'status', '1')
     
-    message = 'Worker conversion task here...ready'
-    send_event(user, message, 'notifications')
-    print(message)
 
     doc = Doc.objects.get(pk=doc_id)
 
     if doc.status == 1:
 
-        message = 'Starting OCR on doc: ' + str(doc_id)
-        send_event(user, message, 'notifications')
-        print(message)
-
         if doc.type == 'application/pdf':
 
             message = "Found a PDF"
-            send_event(user, message, 'notifications')
+            
             print(message)
         
             # Setting document status to "CONVERTING"
@@ -91,12 +88,16 @@ def doc_ocr(doc_id, user):
                     pdf_writer.write(out)
 
                 message = 'Created page ' + str(page + 1) + ' of ' + str(pdf.getNumPages())
-                send_event(user, message, 'notifications')
+                set_redis(user, 'user', message)
                 print(message)
             
             # For every pdf file in folder, convert to txt
+            numpages = len(glob.glob1(destination,"*.pdf"))
+            countpages = 0
             for filename in glob.glob(destination + '*dexipage*.pdf'):
+                countpages += 1
                 converted = convert(filename, filename + '.txt', user)
+                set_redis(user, 'user', 'Converted ' + str(countpages) + ' of ' + str(numpages) + ' pages')
 
             with open(destination + str(doc.file) + '.txt', 'w') as outfile:
                 for txtfile in natsorted(glob.glob(destination + '*dexipage*.txt')):
@@ -116,13 +117,23 @@ def doc_ocr(doc_id, user):
                 'status': 3
             }
             serializer = DocSerializer(instance=doc, data=data, partial = True)
+
             if serializer.is_valid():
+                set_redis(user, 'user', 'Done with document ' + str(doc.name))
+                set_redis(user, 'queue', str(int(get_redis(user, 'queue')) - 1))
+                print(get_redis(user, 'queue'))
+                if get_redis(user, 'queue') == '0':
+                    set_redis(user, 'user', '')
+                    set_redis(user, 'status', '0')
                 serializer.save()
+                return 1
+            else:
+                print(serializer.errors)
+                return 0
 
         elif doc.type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' or doc.type == 'application/msword' or doc.type == 'application/vnd.oasis.opendocument.text' or doc.type == 'application/rtf':
                 
                 message = 'Found a Doc'
-                send_event(user, message, 'notifications')
                 print(message)
     
                 # Setting document status to "CONVERTING"
@@ -131,6 +142,12 @@ def doc_ocr(doc_id, user):
                 }
                 serializer = DocSerializer(instance=doc, data=data, partial = True)
                 if serializer.is_valid():
+                    set_redis(user, 'user', 'Done with document ' + str(doc.name))
+                    set_redis(user, 'queue', str(int(get_redis(user, 'queue')) - 1))
+                    print(get_redis(user, 'queue'))
+                    if get_redis(user, 'queue') == '0':
+                        set_redis(user, 'user', '')
+                        set_redis(user, 'status', '0')
                     serializer.save()
     
                 # Converting DOCX to TXT
@@ -138,7 +155,6 @@ def doc_ocr(doc_id, user):
                 pypandoc.convert_file('/tmp/' + str(doc.file), 'plain', outputfile='/tmp/' + str(doc.file) + '.txt')
     
                 message = 'Upload to S3'
-                send_event(user, message, 'notifications')
                 print(message)
 
                 # Upload converted file to S3
@@ -151,12 +167,17 @@ def doc_ocr(doc_id, user):
                 }
                 serializer = DocSerializer(instance=doc, data=data, partial = True)
                 if serializer.is_valid():
+                    set_redis(user, 'user', 'Done with document ' + str(doc.name))
+                    set_redis(user, 'queue', str(int(get_redis(user, 'queue')) - 1))
+                    print(get_redis(user, 'queue'))
+                    if get_redis(user, 'queue') == '0':
+                        set_redis(user, 'user', '')
+                        set_redis(user, 'status', '0')
                     serializer.save()
 
         elif doc.type == 'text/plain':
                 
                 message = 'Found a Plain Text File'
-                send_event(user, message, 'notifications')
                 print(message)
     
                 # Setting document status to "CONVERTED"
@@ -165,7 +186,19 @@ def doc_ocr(doc_id, user):
                 }
                 serializer = DocSerializer(instance=doc, data=data, partial = True)
                 if serializer.is_valid():
+                    set_redis(user, 'user', 'Done with document ' + str(doc.name))
+                    set_redis(user, 'queue', str(int(get_redis(user, 'queue')) - 1))
+                    print(get_redis(user, 'queue'))
+                    if get_redis(user, 'queue') == '0':
+                        set_redis(user, 'user', '')
+                        set_redis(user, 'status', '0')
                     serializer.save()
+
+    
+
+        
+        
+     
 
 
 def convert(sourcefile, destination_file, user):
@@ -175,7 +208,6 @@ def convert(sourcefile, destination_file, user):
         f_out.write(text)
     
     message = 'Converted ' + sourcefile
-    send_event(user, message, 'notifications')
     print(message)
     
     return True
@@ -211,3 +243,18 @@ def run(args):
         raise Exception(stderr)
 
     return stdout, stderr
+
+# @task_prerun.connect
+# def task_prerun_handler(sender=None, body=None, headers=None, *args, **kwargs):
+#     return
+    
+
+# @task_success.connect
+# def task_success_handler(sender, body, headers, *args, **kwargs):
+#     set_redis(args[1], 'user', '')
+#     set_redis(args[1], 'status', '0')
+    
+
+# @task_failure.connect
+# def task_failure_handler(sender=None, body=None, headers=None, *args, **kwargs):
+#     return

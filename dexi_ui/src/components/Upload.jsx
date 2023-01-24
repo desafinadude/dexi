@@ -21,6 +21,7 @@ export class Upload extends React.Component {
       progressInfos: [],
       message: [],
       fileInfos: [],
+      uploading: false,
     };
   }
 
@@ -93,6 +94,7 @@ export class Upload extends React.Component {
       {
         progressInfos: _progressInfos,
         message: [],
+        uploading: true,
       },
       () => {
         for (let i = 0; i < selectedFiles.length; i++) {
@@ -155,7 +157,7 @@ export class Upload extends React.Component {
                 </div>
                 <aside className="selected-file-wrapper">
                   {Array.isArray(selectedFiles) && selectedFiles.length > 0 &&
-                    <Button size="sm" className="mt-4" variant="primary" disabled={!selectedFiles} onClick={this.uploadFiles}>Upload</Button>
+                    <Button size="sm" className="mt-4" variant="primary" disabled={!selectedFiles || this.state.uploading} onClick={this.uploadFiles}>Upload</Button>
                   } 
                 </aside>
               </section>
@@ -180,7 +182,7 @@ export class Upload extends React.Component {
               {fileInfos &&
                 fileInfos.map((file, index) => (
                   <li className="list-group-item" key={index}>
-                    <a href={file.url}>{file.name}</a>
+                    <span>{file.name}</span>
                   </li>
                 ))}
             </ul>

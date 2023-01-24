@@ -3,11 +3,14 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { Router } from './Router';
 
+import { isTokenSet } from './utils/utils';
+
 import './app.scss';
 import 'animate.css';
 
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
+import { Notifications } from './components/Notifications';
 
 export class App extends React.Component {
 
@@ -15,31 +18,32 @@ export class App extends React.Component {
     constructor(){
         super();
         this.state = {
-            
+            loggedIn: false
         }
         
     }
 
-    componentDidMount() {}
+    // This is not great. Fix with hooks.
+    onLogin = () => {
+        this.setState({loggedIn: true});
+    }    
 
-    componentDidUpdate() {}
-
-   
 
     render() {
         return (
             <>
-                <Header />
-
                 <BrowserRouter>
+                    <Header loggedIn={this.state.loggedIn} />
+                    
                     <div>
-                        <Router />
+                        <Router onLogin={this.onLogin}/> 
                     </div>
+                    
+                    <Footer />
+                    
+                    <Notifications loggedIn={this.state.loggedIn} />
+                    
                 </BrowserRouter>
-
-
-                <Footer />
-
             </>
         )
     }

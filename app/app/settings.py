@@ -45,7 +45,8 @@ INSTALLED_APPS = [
     'dj_rest_auth.registration',
     'core',
     'dexi',
-    'corsheaders'
+    'corsheaders',
+    'celery',
 ]
 
 SITE_ID = 1
@@ -190,16 +191,11 @@ STATICFILES_FINDERS = [
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CELERY_BROKER_URL = "redis://redis:6379"
-CELERY_RESULT_BACKEND = "redis://redis:6379"
-
-SSE_BACKEND_CLASS = 'sse_wrapper.backends.redis_based.RedisBasedBackend'
-SSE_BACKEND_CONNECTION_SETTINGS = {
-    'host': 'redis',
-    'port': 6379,
-    'db': 0,
-}
-
+CELERY_BROKER_URL = 'redis://redis:6379'
+CELERY_RESULT_BACKEND = 'redis://redis:6379'
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
 
 # File storage
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'

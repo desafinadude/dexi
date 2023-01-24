@@ -3,6 +3,8 @@ import axios from 'axios';
 import { isTokenSet, getCookie } from '../utils/utils';
 import dayjs from 'dayjs';
 
+import { Link } from 'react-router-dom';
+
 import DataTable, { defaultThemes } from 'react-data-table-component';
 import { DexiAlert } from '../components/DexiAlert';
 import { UploadReference } from '../components/UploadReference';
@@ -38,7 +40,7 @@ export class ReferenceList extends React.Component {
                 {
                     name: 'Name',
                     selector: row => row.name,
-                    cell: row => <a className="fw-bold text-decoration-none" href={`project/${row.id}`}>{row.name}</a>,
+                    cell: row => <Link className="fw-bold text-decoration-none" to={`project/${row.id}`}>{row.name}</Link>,
                     sortable: true,
                 },
                 {
@@ -59,6 +61,7 @@ export class ReferenceList extends React.Component {
             selectedRows: [],
         }
         
+        
     }
 
     componentDidMount() {
@@ -69,7 +72,7 @@ export class ReferenceList extends React.Component {
         if(isTokenSet()) {
             this.setState({tokenSet: true});
         } else {
-            window.location.href='/';
+            Window.location.href = '/login';
         }
 
         self.getReferences();
@@ -132,7 +135,7 @@ export class ReferenceList extends React.Component {
 
     render() {
         return (<section className="pt-5" style={{minHeight: '100vh'}}>
-
+            
             <Container>
                 <DexiAlert alert={this.state.alert} />
             </Container>
@@ -140,7 +143,7 @@ export class ReferenceList extends React.Component {
             <Container>
 
                 <Breadcrumb>
-                    <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
+                    <Breadcrumb.Item linkAs="span"><Link to="/">Home</Link></Breadcrumb.Item>
                     <Breadcrumb.Item active>References</Breadcrumb.Item>
                 </Breadcrumb>
                 

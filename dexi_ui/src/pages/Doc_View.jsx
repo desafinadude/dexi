@@ -2,7 +2,9 @@ import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import axios from 'axios';
 import { isTokenSet, getCookie, readSearchParams, schemasLookup, schemaColors } from '../utils/utils';
+
 import { useParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 import * as fs from 'fs';
 
@@ -156,6 +158,8 @@ export class DocView extends React.Component {
             showMergeEntity: false
         }
         
+        
+        
     }
 
     componentDidMount() {
@@ -169,7 +173,7 @@ export class DocView extends React.Component {
         if(isTokenSet()) {
             this.setState({tokenSet: true});
         } else {
-            window.location.href='/';
+            window.location.href = '/login';
         }
 
         axios.get(process.env.API + '/dexi/doc/' + docId, { headers: {
@@ -496,10 +500,10 @@ export class DocView extends React.Component {
                     <Row>
                         <Col>
                             <Breadcrumb>
-                                <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
-                                <Breadcrumb.Item href="/project">Projects</Breadcrumb.Item>
+                                <Breadcrumb.Item linkAs="span"><Link to="/">Home</Link></Breadcrumb.Item>
+                                <Breadcrumb.Item linkAs="span"><Link to="/project">Projects</Link></Breadcrumb.Item>
                                 { this.state.project &&
-                                    <Breadcrumb.Item href={`/project/${this.state.project.id}`}>{this.state.project.name}</Breadcrumb.Item>
+                                    <Breadcrumb.Item linkAs="span"><Link to={`/project/${this.state.project.id}`}>{this.state.project.name}</Link></Breadcrumb.Item>
                                 }
                                 <Breadcrumb.Item active>{this.state.doc.name}</Breadcrumb.Item>
                             </Breadcrumb>
@@ -587,7 +591,7 @@ export class DocView extends React.Component {
                                         </div>
                                         :
                                         <div className="pane-content p-5 text-center">
-                                            <p>No extractions found.<br/>Go back to the <a href={`/project/${this.state.project.id}`}>project page</a> to start a new extraction.</p>
+                                            <p>No extractions found.<br/>Go back to the <Link to={`/project/${this.state.project.id}`}>project page</Link> to start a new extraction.</p>
                                         </div>
                                     }
 

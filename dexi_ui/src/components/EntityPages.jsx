@@ -1,6 +1,7 @@
 import React from 'react';
 import axios from 'axios';
 import { isTokenSet, getCookie } from '../utils/utils';
+import { Link } from 'react-router-dom';
 
 import ListGroup from 'react-bootstrap/ListGroup';
 import Badge from 'react-bootstrap/Badge';
@@ -93,7 +94,7 @@ export class EntityPages extends React.Component {
                                 for (const key in this.state.theDocs) {
                                     listgroups.push(<ListGroup.Item as="li" key={key}>
                                         <div className="ms-5 me-auto">
-                                            <div className="fw-bold"><a className="text-decoration-none" href={'/doc/' + this.state.theDocs[key][0].doc.id + '?project=' + this.props.project}>{this.state.theDocs[key][0].doc.name}</a>&nbsp;&nbsp;</div>
+                                            <div className="fw-bold"><Link className="text-decoration-none" to={'/doc/' + this.state.theDocs[key][0].doc.id + '?project=' + this.props.project}>{this.state.theDocs[key][0].doc.name}</Link>&nbsp;&nbsp;</div>
                                             <>
                                             {
                                                 this.runCallback(() => {

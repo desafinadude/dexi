@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import axios from 'axios';
 import { isTokenSet, getCookie, readSearchParams } from '../utils/utils';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 
 import * as fs from 'fs';
 
@@ -149,7 +149,7 @@ export class QuickExtract extends React.Component {
                 <Container fluid className="my-4 px-3">
 
                     <Breadcrumb>
-                        <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
+                        <Breadcrumb.Item linkAs="span"><Link to="/">Home</Link></Breadcrumb.Item>
                         <Breadcrumb.Item active>QuickExtract</Breadcrumb.Item>
                     </Breadcrumb>
                     

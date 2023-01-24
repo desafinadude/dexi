@@ -7,6 +7,8 @@ import Card from 'react-bootstrap/Card';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 
+import { Link } from 'react-router-dom';
+
 export class SignUp extends React.Component {
 
 
@@ -137,7 +139,7 @@ export class SignUp extends React.Component {
                                 <Card>
                                     <Card.Body>
                                         <h4 className="text-center mb-5">Success!</h4>
-                                        <p className="text-center">You have successfully registered. Please log in <a href="/login">here</a></p>
+                                        <p className="text-center">You have successfully registered. Please log in <Link to="/login">here</Link></p>
                                     </Card.Body>
                                 </Card>
                             :

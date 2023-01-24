@@ -1,8 +1,8 @@
 import React from 'react';
 import axios from 'axios';
 import dayjs from 'dayjs';
-
 import { isTokenSet, getCookie } from '../utils/utils';
+import { Link } from 'react-router-dom';
 
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
@@ -11,7 +11,6 @@ import Button from 'react-bootstrap/Button';
 import ListGroup from 'react-bootstrap/ListGroup';
 import Badge from 'react-bootstrap/Badge';
 import ListGroup from 'react-bootstrap/ListGroup';
-
 
 export class Project extends React.Component {
 
@@ -24,10 +23,11 @@ export class Project extends React.Component {
                 // users: []
             }
         }
-        
+        this.link_Project = React.createRef();
     }
 
     componentDidMount() {
+
         let self = this;
 
         if(self.props.selectedProject) {
@@ -52,11 +52,13 @@ export class Project extends React.Component {
 
     deleteProject = () => {
         let self = this;
+
+       
         axios.delete(process.env.API + '/dexi/project/' + this.props.selectedProject, { headers: {
             "Authorization": "token " + getCookie('dexitoken')
         }})
         .then((response) => {
-            window.location.href = "/project";
+            self.link_Project.current.click();
             self.props.onHide();
 
         })
@@ -117,45 +119,48 @@ export class Project extends React.Component {
     render() {
         return (
         
-        
-            
-        <Form onSubmit={this.onFormSubmit}>
-            <Form.Control name="name" type="text" size="sm" placeholder="Project Name" value={this.state.project.name} onChange={e => this.onChange(e,'name')}/>
-            <Form.Control name="description" as="textarea" rows={3} placeholder="Project Description" className="my-2" value={this.state.project.description} onChange={e => this.onChange(e,'description')}/>
-            <>
-            {this.props.selectedProject &&
-                <ListGroup as="ul" className="mb-2" variant="flush">
-                    <ListGroup.Item as="li" className="d-flex justify-content-between align-items-start">
-                        <div className="me-auto">
-                            <small>Documents</small>
-                        </div>
-                        <Badge bg="primary" pill>{this.state.project.doc_count}</Badge>
-                    </ListGroup.Item>
-                    <ListGroup.Item as="li" className="d-flex justify-content-between align-items-start">
-                        <div className="me-auto">
-                            <small>Extractions</small>
-                        </div>
-                        <Badge bg="primary" pill>{this.state.project.extraction_count}</Badge>
-                    </ListGroup.Item>
-                    <ListGroup.Item as="li" className="d-flex justify-content-between align-items-start">
-                        <div className="me-auto">
-                            <small>Created At</small>
-                        </div>
-                        <small>{dayjs(this.state.project.created_at).format('DD-MM-YYYY')}</small>
-                    </ListGroup.Item>
-                </ListGroup>
-            }
-            </>
-            
-            <Row className="mt-4">
-                <Col>
-                    <Button variant="primary" size="sm" type="submit">{this.props.selectedProject ? 'Update' : 'Create'}</Button>
-                    { this.props.selectedProject &&
-                        <Button className="ms-1" variant="danger" size="sm" onClick={this.deleteProject}>Delete Project</Button>
-                    }
-                </Col>
-            </Row>
-        </Form>
+        <>
+            {/* This is here to make the router work programatically. Fix with react hooks. */}
+            <Link ref={this.link_Project} to="/project" className="d-hidden"></Link>
+
+            <Form onSubmit={this.onFormSubmit}>
+                <Form.Control name="name" type="text" size="sm" placeholder="Project Name" value={this.state.project.name} onChange={e => this.onChange(e,'name')}/>
+                <Form.Control name="description" as="textarea" rows={3} placeholder="Project Description" className="my-2" value={this.state.project.description} onChange={e => this.onChange(e,'description')}/>
+                <>
+                {this.props.selectedProject &&
+                    <ListGroup as="ul" className="mb-2" variant="flush">
+                        <ListGroup.Item as="li" className="d-flex justify-content-between align-items-start">
+                            <div className="me-auto">
+                                <small>Documents</small>
+                            </div>
+                            <Badge bg="primary" pill>{this.state.project.doc_count}</Badge>
+                        </ListGroup.Item>
+                        <ListGroup.Item as="li" className="d-flex justify-content-between align-items-start">
+                            <div className="me-auto">
+                                <small>Extractions</small>
+                            </div>
+                            <Badge bg="primary" pill>{this.state.project.extraction_count}</Badge>
+                        </ListGroup.Item>
+                        <ListGroup.Item as="li" className="d-flex justify-content-between align-items-start">
+                            <div className="me-auto">
+                                <small>Created At</small>
+                            </div>
+                            <small>{dayjs(this.state.project.created_at).format('DD-MM-YYYY')}</small>
+                        </ListGroup.Item>
+                    </ListGroup>
+                }
+                </>
+                
+                <Row className="mt-4">
+                    <Col>
+                        <Button variant="primary" size="sm" type="submit">{this.props.selectedProject ? 'Update' : 'Create'}</Button>
+                        { this.props.selectedProject &&
+                            <Button className="ms-1" variant="danger" size="sm" onClick={this.deleteProject}>Delete Project</Button>
+                        }
+                    </Col>
+                </Row>
+            </Form>
+        </>
 
         )
     }
